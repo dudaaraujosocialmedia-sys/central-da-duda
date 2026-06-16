@@ -88,50 +88,41 @@ export default function Checklist() {
 
   const resetarPosts = () => salvarPosts({ semana: semanaAtual, clientes: {} });
 
+  const clientes = getOrDefault('clientes', []).filter(c => !c.data_saida);
+  const diaHoje = new Date().getDate();
+  const mesAtual = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+
   const [processosPeriodos, setProcessosPeriodos] = useState(() => getOrDefault('processos_periodos', []));
   const [showFormPeriodo, setShowFormPeriodo] = useState(false);
-  const [formPeriodo, setFormPeriodo] = useState({ nome: '', dia_inicio: '', dia_fim: '', cor: '#486c96', tarefas: [] });
+  const [formPeriodo, setFormPeriodo] = useState({ nome: '', dia_inicio: '', dia_fim: '', cor: '#486c96' });
   const [editPeriodoId, setEditPeriodoId] = useState(null);
   const [expandidoPeriodo, setExpandidoPeriodo] = useState(null);
-  const [novaTarefaPeriodo, setNovaTarefaPeriodo] = useState('');
-  const clientes = getOrDefault('clientes', []);
-  const diaHoje = new Date().getDate();
 
   const salvarPeriodos = (l) => { setProcessosPeriodos(l); set('processos_periodos', l); };
 
   const submitPeriodo = () => {
     if (!formPeriodo.nome) return;
     if (editPeriodoId) {
-      salvarPeriodos(processosPeriodos.map(p => p.id === editPeriodoId ? { ...formPeriodo, id: editPeriodoId } : p));
+      salvarPeriodos(processosPeriodos.map(p => p.id === editPeriodoId ? { ...p, ...formPeriodo } : p));
       setEditPeriodoId(null);
     } else {
-      salvarPeriodos([...processosPeriodos, { ...formPeriodo, id: Date.now(), tarefas: [] }]);
+      salvarPeriodos([...processosPeriodos, { ...formPeriodo, id: Date.now(), checado: {}, mes_reset: mesAtual }]);
     }
-    setFormPeriodo({ nome: '', dia_inicio: '', dia_fim: '', cor: '#486c96', tarefas: [] });
+    setFormPeriodo({ nome: '', dia_inicio: '', dia_fim: '', cor: '#486c96' });
     setShowFormPeriodo(false);
   };
 
-  const toggleTarefaPeriodo = (periodoId, tarefaId) => {
-    salvarPeriodos(processosPeriodos.map(p => p.id === periodoId
-      ? { ...p, tarefas: p.tarefas.map(t => t.id === tarefaId ? { ...t, concluida: !t.concluida } : t) }
-      : p
-    ));
+  const toggleClientePeriodo = (periodoId, clienteId) => {
+    salvarPeriodos(processosPeriodos.map(p => {
+      if (p.id !== periodoId) return p;
+      // auto-reset se virou o mês
+      const checado = (p.mes_reset === mesAtual) ? (p.checado || {}) : {};
+      return { ...p, checado: { ...checado, [clienteId]: !checado[clienteId] }, mes_reset: mesAtual };
+    }));
   };
 
-  const adicionarTarefaPeriodo = (periodoId) => {
-    if (!novaTarefaPeriodo.trim()) return;
-    salvarPeriodos(processosPeriodos.map(p => p.id === periodoId
-      ? { ...p, tarefas: [...p.tarefas, { id: Date.now(), titulo: novaTarefaPeriodo, concluida: false }] }
-      : p
-    ));
-    setNovaTarefaPeriodo('');
-  };
-
-  const removerTarefaPeriodo = (periodoId, tarefaId) => {
-    salvarPeriodos(processosPeriodos.map(p => p.id === periodoId
-      ? { ...p, tarefas: p.tarefas.filter(t => t.id !== tarefaId) }
-      : p
-    ));
+  const resetarPeriodo = (periodoId) => {
+    salvarPeriodos(processosPeriodos.map(p => p.id === periodoId ? { ...p, checado: {}, mes_reset: mesAtual } : p));
   };
 
   const removerPeriodo = (id) => salvarPeriodos(processosPeriodos.filter(p => p.id !== id));
@@ -331,11 +322,11 @@ export default function Checklist() {
 
           {showFormPeriodo && (
             <div className="bg-white rounded-2xl p-5 border border-[#d2b99b]/30 shadow-sm mb-5">
-              <h4 className="font-semibold text-[#486c96] mb-4">{editPeriodoId ? 'Editar periodo' : 'Novo periodo de processos'}</h4>
+              <h4 className="font-semibold text-[#486c96] mb-4">{editPeriodoId ? 'Editar processo' : 'Novo processo recorrente'}</h4>
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
-                  <label className="label">Nome do periodo</label>
-                  <input className="input" value={formPeriodo.nome} onChange={e => setFormPeriodo({...formPeriodo, nome: e.target.value})} placeholder="Ex: Planejamento mensal dos clientes" />
+                  <label className="label">Nome do processo</label>
+                  <input className="input" value={formPeriodo.nome} onChange={e => setFormPeriodo({...formPeriodo, nome: e.target.value})} placeholder="Ex: Planejamento mensal" />
                 </div>
                 <div>
                   <label className="label">Dia de inicio</label>
@@ -346,7 +337,7 @@ export default function Checklist() {
                   <input className="input" type="number" min="1" max="31" value={formPeriodo.dia_fim} onChange={e => setFormPeriodo({...formPeriodo, dia_fim: e.target.value})} placeholder="Ex: 3" />
                 </div>
                 <div className="col-span-2">
-                  <label className="label">Cor de identificacao</label>
+                  <label className="label">Cor</label>
                   <div className="flex gap-2 flex-wrap">
                     {COR_PERIODOS.map(cor => (
                       <button type="button" key={cor} onClick={() => setFormPeriodo({...formPeriodo, cor})}
@@ -358,21 +349,22 @@ export default function Checklist() {
               </div>
               <div className="flex gap-2 mt-4">
                 <button className="btn-primary" onClick={submitPeriodo}><Check size={16} className="inline mr-1" /> Salvar</button>
-                <button className="btn-secondary" onClick={() => setShowFormPeriodo(false)}>Cancelar</button>
+                <button className="btn-secondary" onClick={() => { setShowFormPeriodo(false); setEditPeriodoId(null); }}>Cancelar</button>
               </div>
             </div>
           )}
 
           {processosPeriodos.length === 0 ? (
             <div className="bg-white rounded-2xl p-10 text-center border border-[#d2b99b]/30 shadow-sm text-gray-400 text-sm">
-              Nenhum periodo cadastrado. Crie periodos como "Planejamento (dia 29 ao 3)" ou "Metricas (dia 1 ao 5)".
+              Crie processos como "Planejamento (dia 29 ao 3)" ou "Metricas (dia 1 ao 5)". Para cada processo voce vai dar check em cada cliente conforme for fazendo.
             </div>
           ) : (
             <div className="space-y-4">
               {processosPeriodos.map(p => {
                 const ativo = periodoAtivo(p);
-                const concluidas = (p.tarefas || []).filter(t => t.concluida).length;
-                const total = (p.tarefas || []).length;
+                const checado = (p.mes_reset === mesAtual) ? (p.checado || {}) : {};
+                const feitos = clientes.filter(c => checado[c.id]).length;
+                const total = clientes.length;
                 return (
                   <div key={p.id} className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${ativo ? 'border-2' : 'border-[#d2b99b]/30'}`} style={ativo ? { borderColor: p.cor } : {}}>
                     <div className="p-4">
@@ -389,17 +381,17 @@ export default function Checklist() {
                           {total > 0 && (
                             <div className="mt-1.5 flex items-center gap-2">
                               <div className="flex-1 bg-[#f9f1e7] rounded-full h-1.5">
-                                <div className="h-1.5 rounded-full transition-all" style={{ width: `${total > 0 ? (concluidas/total)*100 : 0}%`, background: p.cor }} />
+                                <div className="h-1.5 rounded-full transition-all" style={{ width: `${(feitos/total)*100}%`, background: p.cor }} />
                               </div>
-                              <span className="text-[10px] text-gray-400">{concluidas}/{total}</span>
+                              <span className="text-[10px] text-gray-400">{feitos}/{total} clientes</span>
                             </div>
                           )}
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 items-center">
                           <button onClick={() => setExpandidoPeriodo(expandidoPeriodo === p.id ? null : p.id)} className="text-[#486c96]">
                             {expandidoPeriodo === p.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                           </button>
-                          <button onClick={() => { setFormPeriodo({ nome: p.nome, dia_inicio: p.dia_inicio, dia_fim: p.dia_fim, cor: p.cor, tarefas: p.tarefas || [] }); setEditPeriodoId(p.id); setShowFormPeriodo(true); }} className="text-[#486c96] hover:text-[#5f86ad]"><Edit2 size={14} /></button>
+                          <button onClick={() => { setFormPeriodo({ nome: p.nome, dia_inicio: p.dia_inicio, dia_fim: p.dia_fim, cor: p.cor }); setEditPeriodoId(p.id); setShowFormPeriodo(true); }} className="text-[#486c96] hover:text-[#5f86ad]"><Edit2 size={14} /></button>
                           <button onClick={() => removerPeriodo(p.id)} className="text-gray-300 hover:text-red-400"><Trash2 size={14} /></button>
                         </div>
                       </div>
@@ -407,23 +399,32 @@ export default function Checklist() {
 
                     {expandidoPeriodo === p.id && (
                       <div className="border-t border-[#d2b99b]/20 bg-[#f9f1e7]/40 p-4">
-                        <div className="space-y-2 mb-3">
-                          {(p.tarefas || []).map(t => (
-                            <div key={t.id} className={`bg-white rounded-xl px-3 py-2.5 border shadow-sm flex items-center gap-3 ${t.concluida ? 'border-green-200' : 'border-[#d2b99b]/20'}`}>
-                              <button onClick={() => toggleTarefaPeriodo(p.id, t.id)}
-                                className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 ${t.concluida ? 'border-[#486c96]' : 'border-[#d2b99b]'}`}
-                                style={t.concluida ? { background: p.cor, borderColor: p.cor } : {}}>
-                                {t.concluida && <Check size={11} className="text-white" />}
-                              </button>
-                              <span className={`flex-1 text-sm ${t.concluida ? 'line-through text-gray-400' : 'text-gray-700'}`}>{t.titulo}</span>
-                              <button onClick={() => removerTarefaPeriodo(p.id, t.id)} className="text-gray-300 hover:text-red-400"><Trash2 size={12} /></button>
-                            </div>
-                          ))}
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-xs text-gray-400 font-medium">Marque os clientes que voce ja fez</span>
+                          <button onClick={() => resetarPeriodo(p.id)} className="text-xs text-gray-400 hover:text-[#486c96] flex items-center gap-1">
+                            <RefreshCw size={11} /> Resetar
+                          </button>
                         </div>
-                        <div className="flex gap-2">
-                          <input className="input flex-1 text-sm" placeholder="Nova tarefa deste periodo..." value={novaTarefaPeriodo} onChange={e => setNovaTarefaPeriodo(e.target.value)} onKeyDown={e => e.key === 'Enter' && adicionarTarefaPeriodo(p.id)} />
-                          <button className="btn-primary px-3" onClick={() => adicionarTarefaPeriodo(p.id)}><Plus size={16} /></button>
-                        </div>
+                        {clientes.length === 0 ? (
+                          <p className="text-xs text-gray-400">Nenhum cliente ativo.</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {clientes.map(c => {
+                              const feito = !!checado[c.id];
+                              return (
+                                <div key={c.id} className={`bg-white rounded-xl px-3 py-2.5 border shadow-sm flex items-center gap-3 ${feito ? 'border-green-200' : 'border-[#d2b99b]/20'}`}>
+                                  <button onClick={() => toggleClientePeriodo(p.id, c.id)}
+                                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors`}
+                                    style={feito ? { background: p.cor, borderColor: p.cor } : { borderColor: '#d2b99b' }}>
+                                    {feito && <Check size={11} className="text-white" />}
+                                  </button>
+                                  <span className={`flex-1 text-sm font-medium ${feito ? 'line-through text-gray-400' : 'text-gray-700'}`}>{c.nome}</span>
+                                  {feito && <span className="text-[10px] text-green-600 font-semibold">Feito</span>}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
