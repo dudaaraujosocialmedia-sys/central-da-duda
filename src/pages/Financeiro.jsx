@@ -234,7 +234,49 @@ export default function Financeiro({ onVerCliente }) {
             </div>
           )}
 
-          <div className="bg-white rounded-2xl shadow-sm border border-[#d2b99b]/30 overflow-hidden">
+          {/* Cards mobile */}
+          <div className="md:hidden space-y-3">
+            {clientes.length === 0 ? (
+              <div className="bg-white rounded-2xl p-8 text-center border border-[#d2b99b]/30 shadow-sm text-gray-400 text-sm">Nenhum cliente cadastrado ainda</div>
+            ) : clientes.map(c => (
+              <div key={c.id} className="bg-white rounded-2xl border border-[#d2b99b]/30 shadow-sm p-4">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <div className="font-bold text-[#486c96]">{c.nome}</div>
+                    {c.area && <div className="text-xs text-gray-400">{c.area}</div>}
+                    {c.perfil && <div className="text-xs text-gray-400">{c.perfil}</div>}
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${c.status === 'ativo' ? 'bg-green-100 text-green-700' : c.status === 'pausado' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'}`}>{c.status}</span>
+                </div>
+                <div className="flex items-center gap-4 mb-3">
+                  <div>
+                    <div className="text-[10px] text-gray-400">Mensal</div>
+                    <div className="font-bold text-[#486c96] text-sm">R$ {(c.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-gray-400">Pagamento</div>
+                    <div className="text-sm font-semibold text-gray-700">Dia {c.dia_pagamento}</div>
+                  </div>
+                  {c.valor_onboarding && (
+                    <div>
+                      <div className="text-[10px] text-gray-400">1° mes</div>
+                      <div className="text-sm font-semibold text-[#d2b99b]">R$ {c.valor_onboarding.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                    </div>
+                  )}
+                </div>
+                {c.observacoes && <div className="text-xs text-gray-400 mb-2">{c.observacoes}</div>}
+                <div className="flex gap-3 items-center border-t border-[#d2b99b]/20 pt-3">
+                  {onVerCliente && <button onClick={() => onVerCliente(c.id)} className="text-xs text-[#486c96] font-semibold flex items-center gap-1"><Eye size={13} /> Detalhes</button>}
+                  <button onClick={() => editarCliente(c)} className="text-xs text-[#486c96] font-semibold flex items-center gap-1"><Edit2 size={13} /> Editar</button>
+                  {c.contrato && <a href={c.contrato} target="_blank" rel="noreferrer" className="text-xs text-[#5f86ad] font-semibold flex items-center gap-1"><ExternalLink size={13} /> Contrato</a>}
+                  <button onClick={() => removerCliente(c.id)} className="text-red-400 ml-auto"><Trash2 size={14} /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Tabela desktop */}
+          <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-[#d2b99b]/30 overflow-hidden">
             {clientes.length === 0 ? (
               <div className="p-8 text-center text-gray-400 text-sm">Nenhum cliente cadastrado ainda</div>
             ) : (
