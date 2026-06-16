@@ -32,6 +32,7 @@ const KEYS = {
   periodos_calendario: 'da_periodos_calendario',
   processos_periodos: 'da_processos_periodos',
   topicos_estudo: 'da_topicos_estudo',
+  posts_semana: 'da_posts_semana',
   seeded: 'da_seeded',
 };
 

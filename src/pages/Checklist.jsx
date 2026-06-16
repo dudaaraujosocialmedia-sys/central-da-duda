@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { getOrDefault, set } from '../store';
 import { Plus, Trash2, Check, RefreshCw, Edit2, ChevronDown, ChevronUp } from 'lucide-react';
+import { getISOWeek, getYear } from 'date-fns';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -8,7 +9,7 @@ const FREQUENCIAS = ['Diario', 'Semanal', 'Quinzenal', 'Mensal'];
 const COR_PERIODOS = ['#486c96','#5f86ad','#d2b99b','#e879a0','#22c55e','#f59e0b','#ef4444','#8b5cf6','#06b6d4'];
 
 export default function Checklist() {
-  const [aba, setAba] = useState('diario');
+  const [aba, setAba] = useState('posts');
   const [mensal, setMensal] = useState(() => getOrDefault('checklist_mensal', []));
   const [semanal, setSemanal] = useState(() => getOrDefault('checklist_semanal', []));
   const [diario, setDiario] = useState(() => getOrDefault('checklist_diario', []));
@@ -65,6 +66,27 @@ export default function Checklist() {
 
   const concluidasDiario = diario.filter(t => t.concluida).length;
   const concluidasSemanal = semanal.filter(t => t.concluida).length;
+
+  // Posts por semana
+  const hoje = new Date();
+  const semanaAtual = `${getYear(hoje)}-W${String(getISOWeek(hoje)).padStart(2, '0')}`;
+  const DIAS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
+
+  const [postsSemana, setPostsSemana] = useState(() => {
+    const salvo = getOrDefault('posts_semana', null);
+    if (salvo && salvo.semana === semanaAtual) return salvo;
+    return { semana: semanaAtual, clientes: {} };
+  });
+
+  const salvarPosts = (novoState) => { setPostsSemana(novoState); set('posts_semana', novoState); };
+
+  const togglePost = (clienteId, dia) => {
+    const clienteAtual = postsSemana.clientes[clienteId] || {};
+    const novoCliente = { ...clienteAtual, [dia]: !clienteAtual[dia] };
+    salvarPosts({ ...postsSemana, clientes: { ...postsSemana.clientes, [clienteId]: novoCliente } });
+  };
+
+  const resetarPosts = () => salvarPosts({ semana: semanaAtual, clientes: {} });
 
   const [processosPeriodos, setProcessosPeriodos] = useState(() => getOrDefault('processos_periodos', []));
   const [showFormPeriodo, setShowFormPeriodo] = useState(false);
@@ -123,6 +145,7 @@ export default function Checklist() {
   };
 
   const abas = [
+    { id: 'posts', label: 'Posts Clientes' },
     { id: 'diario', label: 'Diario' },
     { id: 'semanal', label: 'Semanal' },
     { id: 'mensal', label: 'Mensal' },
@@ -153,6 +176,66 @@ export default function Checklist() {
           </button>
         ))}
       </div>
+
+      {aba === 'posts' && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-sm text-gray-500">Semana {semanaAtual} — marque os dias que os posts foram feitos para cada cliente.</p>
+            </div>
+            <button className="btn-secondary flex items-center gap-1 text-xs" onClick={resetarPosts}>
+              <RefreshCw size={12} /> Nova semana
+            </button>
+          </div>
+
+          {clientes.filter(c => !c.data_saida).length === 0 ? (
+            <div className="bg-white rounded-2xl p-10 text-center border border-[#d2b99b]/30 shadow-sm text-gray-400 text-sm">
+              Nenhum cliente ativo cadastrado.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {clientes.filter(c => !c.data_saida).map(c => {
+                const dias_cliente = postsSemana.clientes[c.id] || {};
+                const feitos = DIAS.filter(d => dias_cliente[d]).length;
+                return (
+                  <div key={c.id} className="bg-white rounded-2xl border border-[#d2b99b]/30 shadow-sm p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <span className="font-bold text-[#486c96] text-sm">{c.nome}</span>
+                        <span className="text-xs text-gray-400 ml-2">{feitos}/{DIAS.length} dias</span>
+                      </div>
+                      {feitos === DIAS.length && (
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">Semana completa!</span>
+                      )}
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      {DIAS.map(dia => (
+                        <button
+                          key={dia}
+                          onClick={() => togglePost(c.id, dia)}
+                          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl border-2 text-xs font-semibold transition-all ${
+                            dias_cliente[dia]
+                              ? 'bg-[#486c96] border-[#486c96] text-white'
+                              : 'border-[#d2b99b]/40 text-gray-400 hover:border-[#486c96]/40'
+                          }`}
+                        >
+                          {dia}
+                          {dias_cliente[dia] && <Check size={10} />}
+                        </button>
+                      ))}
+                    </div>
+                    {feitos > 0 && (
+                      <div className="mt-3 w-full bg-[#f9f1e7] rounded-full h-1.5">
+                        <div className="h-1.5 rounded-full bg-[#486c96] transition-all" style={{ width: `${(feitos / DIAS.length) * 100}%` }} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {aba === 'diario' && (
         <div>
