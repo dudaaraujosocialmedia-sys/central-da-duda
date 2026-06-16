@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Flame, DollarSign, Target, TrendingUp,
   Calendar, MessageSquare, CheckSquare, GraduationCap,
-  Lightbulb, Lock, BookOpen, ChevronLeft, ChevronRight, Menu, Settings
+  Lightbulb, Lock, BookOpen, ChevronLeft, Menu, Settings, X
 } from 'lucide-react';
 
 const navItems = [
@@ -13,7 +13,7 @@ const navItems = [
   { id: 'calendario', label: 'Calendario', icon: Calendar },
   { id: 'mensagens', label: 'Mensagens Prontas', icon: MessageSquare },
   { id: 'checklist', label: 'Checklist', icon: CheckSquare },
-  { id: 'cursos', label: 'Cursos Concluidos', icon: GraduationCap },
+  { id: 'cursos', label: 'Cursos & Estudos', icon: GraduationCap },
   { id: 'insights', label: 'Insights', icon: Lightbulb },
   { id: 'senhas', label: 'Cofre de Senhas', icon: Lock },
   { id: 'processos', label: 'Processos', icon: BookOpen },
@@ -21,58 +21,71 @@ const navItems = [
 ];
 
 export default function Sidebar({ currentPage, onNavigate, open, onToggle }) {
+  const handleNav = (id) => {
+    onNavigate(id);
+    // Fecha no mobile ao navegar
+    if (window.innerWidth < 768 && open) onToggle();
+  };
+
   return (
-    <aside
-      className="flex flex-col border-r border-[#d2b99b]/40 transition-all duration-300"
-      style={{
-        width: open ? 240 : 72,
-        minWidth: open ? 240 : 72,
-        background: 'white',
-        height: '100vh',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-5 border-b border-[#d2b99b]/40">
-        {open && (
+    <>
+      {/* Backdrop mobile */}
+      {open && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          onClick={onToggle}
+        />
+      )}
+
+      <aside
+        className={`flex flex-col border-r border-[#d2b99b]/40 transition-all duration-300 z-50
+          fixed md:relative h-full md:h-screen
+          ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}
+        style={{
+          width: 240,
+          minWidth: 240,
+          background: 'white',
+          top: 0,
+          left: 0,
+        }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-5 border-b border-[#d2b99b]/40">
           <div>
             <div className="text-[#486c96] font-bold text-lg leading-tight">duda araujo</div>
             <div className="text-[#5f86ad] text-xs font-medium tracking-widest uppercase">social media</div>
           </div>
-        )}
-        <button
-          onClick={onToggle}
-          className="p-2 rounded-xl hover:bg-[#f9f1e7] text-[#486c96] transition-colors"
-        >
-          {open ? <ChevronLeft size={18} /> : <Menu size={18} />}
-        </button>
-      </div>
-
-      {/* Nav */}
-      <nav className="flex-1 py-4 px-2 overflow-y-auto space-y-1">
-        {navItems.map(({ id, label, icon: Icon }) => (
           <button
-            key={id}
-            onClick={() => onNavigate(id)}
-            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-              currentPage === id
-                ? 'bg-[#486c96] text-white'
-                : 'text-[#486c96] hover:bg-[#f9f1e7]'
-            }`}
-            title={!open ? label : undefined}
+            onClick={onToggle}
+            className="p-2 rounded-xl hover:bg-[#f9f1e7] text-[#486c96] transition-colors"
           >
-            <Icon size={18} className="flex-shrink-0" />
-            {open && <span className="truncate">{label}</span>}
+            <X size={18} />
           </button>
-        ))}
-      </nav>
+        </div>
 
-      {/* Footer */}
-      {open && (
+        {/* Nav */}
+        <nav className="flex-1 py-4 px-2 overflow-y-auto space-y-1">
+          {navItems.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => handleNav(id)}
+              className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                currentPage === id
+                  ? 'bg-[#486c96] text-white'
+                  : 'text-[#486c96] hover:bg-[#f9f1e7]'
+              }`}
+            >
+              <Icon size={18} className="flex-shrink-0" />
+              <span className="truncate">{label}</span>
+            </button>
+          ))}
+        </nav>
+
         <div className="px-4 py-4 border-t border-[#d2b99b]/40">
           <div className="text-xs text-[#d2b99b] font-medium">Central da Duda</div>
         </div>
-      )}
-    </aside>
+      </aside>
+    </>
   );
 }
