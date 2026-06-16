@@ -1,0 +1,13 @@
+{
+  "name": "Duda Araujo | Central",
+  "short_name": "Central Duda",
+  "description": "Central de gestao da Duda Araujo Social Media",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9f1e7",
+  "theme_color": "#486c96",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
