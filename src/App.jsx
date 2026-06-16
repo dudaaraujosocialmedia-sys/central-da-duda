@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import './index.css';
-import { initSeedData } from './store';
+import { initSeedData, sincronizarDoSupabase } from './store';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import PautasQuentes from './pages/PautasQuentes';
@@ -37,8 +37,14 @@ export default function App() {
   const [page, setPage] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [clienteDetalheId, setClienteDetalheId] = useState(null);
+  const [sincronizado, setSincronizado] = useState(false);
 
-  useEffect(() => { initSeedData(); }, []);
+  useEffect(() => {
+    sincronizarDoSupabase().then(temDados => {
+      if (!temDados) initSeedData();
+      setSincronizado(true);
+    });
+  }, []);
 
   const PageComponent = PAGES[page] || Dashboard;
 

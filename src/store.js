@@ -1,8 +1,14 @@
+import { createClient } from '@supabase/supabase-js';
 import {
   CLIENTES_INICIAIS, INVESTIMENTOS_INICIAIS, FLUXO_INICIAL,
   AREAS_INICIAIS, PROCESSOS_INICIAIS, CHECKLIST_MENSAL_INICIAL,
   TAREFAS_RECORRENTES_INICIAIS
 } from './seedData';
+
+const SUPABASE_URL = 'https://baedyrlvlbsjlattdbjz.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhZWR5cmx2bGJzamxhdHRkYmp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MjUxNTgsImV4cCI6MjA5NzIwMTE1OH0.UpV__R2jgAvBNcj5bp9tjXW_mhrzF2VuKMV-bOyzf7A';
+
+export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const KEYS = {
   clientes: 'da_clientes',
@@ -38,11 +44,26 @@ export function get(key) {
 
 export function set(key, value) {
   localStorage.setItem(KEYS[key], JSON.stringify(value));
+  // Sincroniza com Supabase em background
+  const chave = KEYS[key];
+  supabase.from('da_dados').upsert({ chave, valor: value, atualizado_em: new Date().toISOString() }).then(() => {});
 }
 
 export function getOrDefault(key, defaultValue) {
   const val = get(key);
   return val !== null ? val : defaultValue;
+}
+
+// Carrega todos os dados do Supabase e atualiza o localStorage
+export async function sincronizarDoSupabase() {
+  try {
+    const { data, error } = await supabase.from('da_dados').select('*');
+    if (error || !data || data.length === 0) return false;
+    data.forEach(row => {
+      localStorage.setItem(row.chave, JSON.stringify(row.valor));
+    });
+    return true;
+  } catch { return false; }
 }
 
 export function initSeedData() {
