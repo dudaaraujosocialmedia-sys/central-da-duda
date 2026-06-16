@@ -88,7 +88,7 @@ export default function Checklist() {
 
   const resetarPosts = () => salvarPosts({ semana: semanaAtual, clientes: {} });
 
-  const clientes = getOrDefault('clientes', []).filter(c => !c.data_saida);
+  const [clientes, setClientes] = useState(() => getOrDefault('clientes', []).filter(c => !c.data_saida));
   const diaHoje = new Date().getDate();
   const mesAtual = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
 
@@ -97,6 +97,16 @@ export default function Checklist() {
   const [formPeriodo, setFormPeriodo] = useState({ nome: '', dia_inicio: '', dia_fim: '', cor: '#486c96' });
   const [editPeriodoId, setEditPeriodoId] = useState(null);
   const [expandidoPeriodo, setExpandidoPeriodo] = useState(null);
+
+  // Recarrega clientes ao abrir aba processos ou expandir periodo (garante dados do Supabase)
+  const abrirProcessos = () => {
+    setClientes(getOrDefault('clientes', []).filter(c => !c.data_saida));
+    setAba('processos');
+  };
+  const expandirPeriodo = (id) => {
+    setClientes(getOrDefault('clientes', []).filter(c => !c.data_saida));
+    setExpandidoPeriodo(expandidoPeriodo === id ? null : id);
+  };
 
   const salvarPeriodos = (l) => { setProcessosPeriodos(l); set('processos_periodos', l); };
 
@@ -161,7 +171,7 @@ export default function Checklist() {
 
       <div className="flex gap-2 mb-6 flex-wrap">
         {abas.map(a => (
-          <button key={a.id} onClick={() => setAba(a.id)}
+          <button key={a.id} onClick={() => a.id === 'processos' ? abrirProcessos() : setAba(a.id)}
             className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${aba === a.id ? 'bg-[#486c96] text-white' : 'bg-white text-[#486c96] border border-[#d2b99b]/40'}`}>
             {a.label}
           </button>
@@ -388,7 +398,7 @@ export default function Checklist() {
                           )}
                         </div>
                         <div className="flex gap-2 items-center">
-                          <button onClick={() => setExpandidoPeriodo(expandidoPeriodo === p.id ? null : p.id)} className="text-[#486c96]">
+                          <button onClick={() => expandirPeriodo(p.id)} className="text-[#486c96]">
                             {expandidoPeriodo === p.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                           </button>
                           <button onClick={() => { setFormPeriodo({ nome: p.nome, dia_inicio: p.dia_inicio, dia_fim: p.dia_fim, cor: p.cor }); setEditPeriodoId(p.id); setShowFormPeriodo(true); }} className="text-[#486c96] hover:text-[#5f86ad]"><Edit2 size={14} /></button>
