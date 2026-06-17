@@ -40,20 +40,23 @@ const KEYS = {
   despesas: 'da_despesas',
   diario_empresa: 'da_diario_empresa',
   projetos: 'da_projetos',
+  categorias_calendario: 'da_categorias_calendario',
 };
+
+export const ALL_BACKUP_KEYS = Object.values(KEYS);
 
 export function get(key) {
   try {
-    const val = localStorage.getItem(KEYS[key]);
+    const storageKey = KEYS[key] || key;
+    const val = localStorage.getItem(storageKey);
     return val ? JSON.parse(val) : null;
   } catch { return null; }
 }
 
 export function set(key, value) {
-  localStorage.setItem(KEYS[key], JSON.stringify(value));
-  // Sincroniza com Supabase em background
-  const chave = KEYS[key];
-  supabase.from('da_dados').upsert({ chave, valor: value, atualizado_em: new Date().toISOString() }).then(() => {});
+  const chave = KEYS[key] || key;
+  localStorage.setItem(chave, JSON.stringify(value));
+  supabase.from('da_dados').upsert({ chave, valor: value, atualizado_em: new Date().toISOString() }).then(() => {}).catch(() => {});
 }
 
 export function getOrDefault(key, defaultValue) {

@@ -1,8 +1,6 @@
 import { useState, useRef } from 'react';
-import { getOrDefault, set } from '../store';
+import { getOrDefault, set, ALL_BACKUP_KEYS } from '../store';
 import { Send, Check, Trash2, Clock, Download, Upload, AlertCircle } from 'lucide-react';
-
-const BACKUP_KEYS = ['da_clientes','da_financeiro','da_metas','da_investimentos','da_eventos','da_mensagens','da_checklist_mensal','da_checklist_semanal','da_checklist_diario','da_tarefas_recorrentes','da_cursos','da_insights','da_senhas','da_processos','da_pautas','da_areas_cliente','da_fluxo_financeiro','da_ajustes_historico'];
 
 export default function Ajustes() {
   const [pedido, setPedido] = useState('');
@@ -39,10 +37,17 @@ export default function Ajustes() {
 
   const exportarBackup = () => {
     const dados = {};
-    BACKUP_KEYS.forEach(k => {
+    ALL_BACKUP_KEYS.forEach(k => {
       const val = localStorage.getItem(k);
       if (val) dados[k] = JSON.parse(val);
     });
+    // Inclui chaves dinamicas de clientes (notas, checklist por cliente)
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && (k.startsWith('notas_cliente_') || k.startsWith('checklist_cliente_'))) {
+        try { dados[k] = JSON.parse(localStorage.getItem(k)); } catch {}
+      }
+    }
     const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
