@@ -34,6 +34,12 @@ const KEYS = {
   topicos_estudo: 'da_topicos_estudo',
   posts_semana: 'da_posts_semana',
   seeded: 'da_seeded',
+  // Novos
+  banco_ideias: 'da_banco_ideias',
+  marca: 'da_marca',
+  despesas: 'da_despesas',
+  diario_empresa: 'da_diario_empresa',
+  projetos: 'da_projetos',
 };
 
 export function get(key) {
