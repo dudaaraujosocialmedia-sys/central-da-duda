@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { getOrDefault, set } from '../store';
-import { Flame, Plus, Trash2, RefreshCw, Calendar, Brain, Copy, Check as CheckIcon } from 'lucide-react';
+import { Flame, Plus, Trash2, RefreshCw, Calendar, Brain, Copy, Check as CheckIcon, ChevronDown, ChevronUp, Target } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { IDEIAS_BASE, IDEIAS_GENERICAS, ALIASES_NICHO } from '../data/ideiasNicho';
@@ -122,9 +122,19 @@ export default function PautasQuentes() {
 
   // Banco de ideias
   const [bancoIdeias, setBancoIdeias] = useState(() => getOrDefault('banco_ideias', {}));
+  const [direcionamentos, setDirecionamentos] = useState(() => getOrDefault('direcionamento_clientes', {}));
+  const [dirAberto, setDirAberto] = useState({});
+  const [dirEditando, setDirEditando] = useState({});
   const [copiadoIdx, setCopiadoIdx] = useState(null);
   const semanaAtual = getSemanaAtual();
   const [clientes] = useState(() => getOrDefault('clientes', []).filter(c => !c.data_saida && c.status === 'ativo'));
+
+  const salvarDirecionamento = (clienteId, texto) => {
+    const novo = { ...direcionamentos, [clienteId]: texto };
+    setDirecionamentos(novo);
+    set('direcionamento_clientes', novo);
+    setDirEditando(d => { const x = { ...d }; delete x[clienteId]; return x; });
+  };
 
   const gerarIdeiasCliente = (clienteId, area) => {
     const base = getIdeias(area);
@@ -160,11 +170,10 @@ export default function PautasQuentes() {
     const insights = getOrDefault('insights', []);
     const insightId = `ideia_${clienteId}_${i}`;
     if (!eraboa) {
-      // Marcando como boa: cria insight
-      const titulo = texto.length > 70 ? texto.slice(0, 70) + '...' : texto;
+      const tituloBase = texto.length > 65 ? texto.slice(0, 65) + '...' : texto;
       const novoInsight = {
         id: insightId,
-        titulo,
+        titulo: `[${nomeCliente}] ${tituloBase}`,
         texto,
         categoria: 'Conteudo',
         cliente_id: clienteId,
@@ -172,10 +181,8 @@ export default function PautasQuentes() {
         origem: 'banco_ideias',
       };
       const jaExiste = insights.find(ins => ins.id === insightId);
-      const novosInsights = jaExiste ? insights : [novoInsight, ...insights];
-      set('insights', novosInsights);
+      set('insights', jaExiste ? insights : [novoInsight, ...insights]);
     } else {
-      // Desmarcando: remove do insights
       set('insights', insights.filter(ins => ins.id !== insightId));
     }
   };
@@ -326,11 +333,34 @@ export default function PautasQuentes() {
                         <h3 className="font-bold text-[#486c96]">{c.nome}</h3>
                         <p className="text-xs text-gray-400">{c.area || 'Area nao definida'} {isAtualizado && <span className="text-green-500 ml-1">✓ atualizado</span>}</p>
                       </div>
-                      <button onClick={() => gerarIdeiasCliente(c.id, c.area)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold bg-[#f9f1e7] text-[#486c96] hover:bg-[#d2b99b]/20 transition-colors">
-                        <RefreshCw size={14} /> {dados ? 'Regenerar' : 'Gerar ideias'}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => setDirAberto(d => ({ ...d, [c.id]: !d[c.id] }))}
+                          title="Direcionamento de conteudo"
+                          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${dirAberto[c.id] ? 'bg-[#486c96] text-white' : 'bg-[#f9f1e7] text-[#486c96] hover:bg-[#d2b99b]/20'}`}>
+                          <Target size={14} /> Direcionamento
+                          {dirAberto[c.id] ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                        </button>
+                        <button onClick={() => gerarIdeiasCliente(c.id, c.area)}
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold bg-[#f9f1e7] text-[#486c96] hover:bg-[#d2b99b]/20 transition-colors">
+                          <RefreshCw size={14} /> {dados ? 'Regenerar' : 'Gerar ideias'}
+                        </button>
+                      </div>
                     </div>
+                    {dirAberto[c.id] && (
+                      <div className="px-5 py-4 bg-[#f9f1e7]/40 border-b border-[#d2b99b]/20">
+                        <p className="text-xs font-bold text-[#486c96] mb-2">Direcionamento de conteudo para {c.nome.split(' ')[0]}</p>
+                        <p className="text-[11px] text-gray-400 mb-2">Escreva o foco, tom, temas prioritarios ou o que evitar para este cliente. Isso vai guiar as ideias geradas.</p>
+                        <textarea
+                          className="w-full text-sm text-gray-700 border border-[#d2b99b]/40 rounded-xl p-3 resize-none focus:outline-none focus:border-[#486c96] bg-white"
+                          rows={3}
+                          placeholder={`Ex: Foco em conteudo educativo sobre ${c.area || 'a area'}. Tom profissional mas acessivel. Evitar politica. Priorizar duvidas frequentes dos pacientes. Postar 3x por semana.`}
+                          value={dirEditando[c.id] !== undefined ? dirEditando[c.id] : (direcionamentos[c.id] || '')}
+                          onChange={e => setDirEditando(d => ({ ...d, [c.id]: e.target.value }))}
+                          onBlur={e => salvarDirecionamento(c.id, e.target.value)}
+                        />
+                        <p className="text-[10px] text-gray-400 mt-1">Salva automaticamente ao clicar fora ✓</p>
+                      </div>
+                    )}
                     {dados ? (
                       <div className="divide-y divide-[#d2b99b]/10">
                         {dados.ideias.map((ideia, i) => {

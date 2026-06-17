@@ -213,9 +213,9 @@ export default function Insights() {
           ) : (
             <div className="columns-1 md:columns-2 gap-4 space-y-4">
               {filtrados.map(item => (
-                <div key={item.id} className="bg-white rounded-2xl p-5 border border-[#d2b99b]/30 shadow-sm break-inside-avoid mb-4">
+                <div key={item.id} className={`bg-white rounded-2xl p-5 border shadow-sm break-inside-avoid mb-4 ${item.origem === 'banco_ideias' ? 'border-green-200' : 'border-[#d2b99b]/30'}`}>
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="font-bold text-[#486c96] text-sm">{item.titulo}</h3>
+                    <h3 className="font-bold text-[#486c96] text-sm leading-snug">{item.titulo}</h3>
                     <div className="flex gap-1 flex-shrink-0">
                       <button onClick={() => editar(item)} className="text-[#486c96] hover:text-[#5f86ad]"><Edit2 size={13} /></button>
                       <button onClick={() => remover(item.id)} className="text-gray-300 hover:text-red-400"><Trash2 size={13} /></button>
@@ -225,6 +225,9 @@ export default function Insights() {
                     <span className="inline-block px-2 py-0.5 rounded-full text-[10px] bg-[#f9f1e7] text-[#486c96] font-semibold">{item.categoria}</span>
                     {nomeCliente(item.cliente_id) && (
                       <span className="inline-block px-2 py-0.5 rounded-full text-[10px] bg-blue-50 text-blue-700 font-semibold">{nomeCliente(item.cliente_id)}</span>
+                    )}
+                    {item.origem === 'banco_ideias' && (
+                      <span className="inline-block px-2 py-0.5 rounded-full text-[10px] bg-green-50 text-green-700 font-semibold">Banco de Ideias</span>
                     )}
                   </div>
                   <p className="text-sm text-gray-600 leading-relaxed">{item.texto}</p>
