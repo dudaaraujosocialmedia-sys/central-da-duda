@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { getOrDefault, set } from '../store';
 import { Flame, Plus, Trash2, RefreshCw, Calendar, Brain, Copy, Check as CheckIcon } from 'lucide-react';
 import { format } from 'date-fns';
@@ -561,7 +561,7 @@ export default function PautasQuentes() {
   const [bancoIdeias, setBancoIdeias] = useState(() => getOrDefault('banco_ideias', {}));
   const [copiadoIdx, setCopiadoIdx] = useState(null);
   const semanaAtual = getSemanaAtual();
-  const clientes = getOrDefault('clientes', []).filter(c => !c.data_saida && c.status === 'ativo');
+  const [clientes] = useState(() => getOrDefault('clientes', []).filter(c => !c.data_saida && c.status === 'ativo'));
 
   const gerarIdeiasCliente = (clienteId, area) => {
     const base = getIdeias(area);
@@ -580,13 +580,12 @@ export default function PautasQuentes() {
 
   const mesAtual = new Date().getMonth() + 1;
 
-  const datasFiltradas = DATAS_IMPORTANTES.filter(d =>
+  const datasFiltradas = useMemo(() => DATAS_IMPORTANTES.filter(d =>
     d.areas.includes('todos') || areas.some(a => d.areas.some(da => da.toLowerCase().includes(a.toLowerCase()) || a.toLowerCase().includes(da.toLowerCase())))
   ).sort((a, b) => {
-    // Ordena: meses futuros/atual primeiro, depois meses passados
     const ajustar = (m) => m < mesAtual ? m + 12 : m;
     return ajustar(a.mes) - ajustar(b.mes) || a.dia - b.dia;
-  });
+  }), [areas, mesAtual]);
 
   const salvarAreas = (novas) => {
     setAreas(novas);
