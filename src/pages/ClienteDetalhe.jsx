@@ -10,6 +10,7 @@ export default function ClienteDetalhe({ clienteId, onVoltar }) {
 
   const [notas, setNotas] = useState(() => getOrDefault(`notas_cliente_${clienteId}`, []));
   const [checklistCliente, setChecklistCliente] = useState(() => getOrDefault(`checklist_cliente_${clienteId}`, []));
+  const [anotacoes, setAnotacoes] = useState(() => getOrDefault(`anotacoes_${clienteId}`, ''));
   const [formNota, setFormNota] = useState('');
   const [formTask, setFormTask] = useState('');
   const [aba, setAba] = useState('resumo');
@@ -23,6 +24,7 @@ export default function ClienteDetalhe({ clienteId, onVoltar }) {
 
   const salvarNotas = (l) => { setNotas(l); set(`notas_cliente_${clienteId}`, l); };
   const salvarChecklist = (l) => { setChecklistCliente(l); set(`checklist_cliente_${clienteId}`, l); };
+  const salvarAnotacoes = (v) => { setAnotacoes(v); set(`anotacoes_${clienteId}`, v); };
 
   const adicionarNota = () => {
     if (!formNota.trim()) return;
@@ -112,6 +114,20 @@ export default function ClienteDetalhe({ clienteId, onVoltar }) {
         {cliente.observacoes && (
           <div className="mt-4 p-3 bg-[#f9f1e7] rounded-xl text-sm text-gray-600">{cliente.observacoes}</div>
         )}
+      </div>
+
+      {/* Anotacoes rapidas */}
+      <div className="bg-[#fffdf7] rounded-2xl p-5 border border-[#d2b99b]/40 shadow-sm mb-5">
+        <label className="text-xs font-bold text-[#d2b99b] uppercase tracking-widest block mb-2">Anotacoes rapidas</label>
+        <textarea
+          className="w-full bg-transparent text-sm text-gray-700 leading-relaxed resize-none focus:outline-none placeholder:text-gray-300"
+          rows={4}
+          placeholder={`Ex: prefere postar terca, evitar roxo na identidade, marido se chama Joao...`}
+          value={anotacoes}
+          onChange={e => setAnotacoes(e.target.value)}
+          onBlur={e => salvarAnotacoes(e.target.value)}
+        />
+        <p className="text-[10px] text-[#d2b99b] mt-1">Salva automaticamente ao clicar fora</p>
       </div>
 
       {/* Abas */}
