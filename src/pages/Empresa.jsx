@@ -226,6 +226,10 @@ export default function Empresa() {
                       <label className="label">Unidade</label>
                       <input className="input" value={formDesp.unidade} onChange={e => setFormDesp({...formDesp, unidade: e.target.value})} placeholder="Ex: arte, post, video, hora" />
                     </div>
+                    <div>
+                      <label className="label">Dia de vencimento (opcional)</label>
+                      <input className="input" type="number" min="1" max="31" value={formDesp.vencimento} onChange={e => setFormDesp({...formDesp, vencimento: e.target.value})} placeholder="Ex: 10" />
+                    </div>
                     <div className="col-span-2 bg-[#f9f1e7] rounded-xl p-3 text-xs text-[#486c96]">
                       O custo vai variar por mes conforme a quantidade que voce pedir. Voce informa a quantidade direto no cartao da despesa todo mes.
                     </div>
@@ -277,7 +281,7 @@ export default function Empresa() {
                       <div className="font-bold text-[#486c96]">R$ {custoHoje.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
                       <div className="text-xs text-gray-400">
                         {ehDemanda
-                          ? `R$ ${(d.valor_unit||0).toLocaleString('pt-BR',{minimumFractionDigits:2})} / ${d.unidade || 'unidade'}`
+                          ? `R$ ${(d.valor_unit||0).toLocaleString('pt-BR',{minimumFractionDigits:2})} / ${d.unidade || 'unidade'}${d.vencimento ? ` · vence dia ${d.vencimento}` : ''}`
                           : `${d.frequencia}${d.vencimento ? ` · dia ${d.vencimento}` : ''}`}
                       </div>
                     </div>
