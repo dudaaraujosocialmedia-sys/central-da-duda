@@ -23,16 +23,22 @@ const TIPOS_PROJETO = [
   { id: 'outro',          label: 'Outro',              emoji: '📁', desc: 'Projeto personalizado' },
 ];
 
+// Tipos que nao tem "Entregaveis" no sentido digital (ex: kits fisicos)
+const TIPOS_SEM_ENTREGAVEIS = ['kit_data'];
+
 const TEMPLATES_CHECKLIST = {
   kit_data: [
-    'Fazer briefing com o cliente (tema, data, cores, quantidade de pecas)',
-    'Definir quais pecas entram no kit (post feed, stories, reels)',
-    'Escrever copys e legendas de cada peca',
-    'Enviar briefing para o designer',
-    'Revisar as artes recebidas do designer',
-    'Enviar para aprovacao do cliente',
-    'Fazer ajustes solicitados',
-    'Agendar as publicacoes',
+    'Definir quantas pessoas vao receber o kit',
+    'Definir o que vai dentro da caixa',
+    'Escrever a mensagem / carta personalizada',
+    'Cotar e comprar os itens do kit',
+    'Cotar embalagem (caixa) e adesivos',
+    'Enviar briefing das artes para o designer (adesivo, tag, card)',
+    'Revisar as artes e aprovar',
+    'Montar os kits',
+    'Fotografar / filmar o unboxing para os stories',
+    'Fazer entrega ou envio',
+    'Publicar conteudo de bastidores / montagem',
   ],
   kit_aniversario: [
     'Confirmar data do aniversario do cliente',
@@ -330,6 +336,18 @@ export default function Insights() {
       ? { ...p, detalhes_tipo: { ...(p.detalhes_tipo || {}), [key]: val } }
       : p));
     setEditandoCampo(e => { const x = { ...e }; delete x[`${projId}_dt_${key}`]; return x; });
+  };
+
+  const calcularTotalOrcamento = (p) => {
+    const dt = p.detalhes_tipo || {};
+    const parseVal = (s) => parseFloat(String(s || '').replace(/[^0-9,.]/g, '').replace(',', '.')) || 0;
+    const qtd = parseFloat(String(dt.quantidade || '').replace(/[^0-9]/g, '')) || 1;
+    const fixos = ['valor_caixa', 'valor_adesivo'].map(k => parseVal(dt[k]));
+    const extras = (dt.itens_extra || []).map(i => parseVal(i.valor));
+    const totalUnit = [...fixos, ...extras].reduce((a, b) => a + b, 0);
+    if (totalUnit === 0) return null;
+    const temQtd = ['kit_data'].includes(p.tipo);
+    return { totalUnit, total: temQtd ? totalUnit * qtd : totalUnit, qtd: temQtd ? qtd : null };
   };
 
   const addItemExtra = (projId) => {
@@ -709,8 +727,8 @@ export default function Insights() {
                           </div>
                         )}
 
-                        {/* ENTREGAVEIS */}
-                        <div className="px-5 py-4">
+                        {/* ENTREGAVEIS — oculto para tipos fisicos */}
+                        {!TIPOS_SEM_ENTREGAVEIS.includes(p.tipo) && <div className="px-5 py-4">
                           <div className="flex items-center gap-2 mb-3">
                             <Package size={14} className="text-[#486c96]" />
                             <span className="text-xs font-bold text-[#486c96] uppercase tracking-wide">Entregaveis</span>
@@ -739,7 +757,7 @@ export default function Insights() {
                               onKeyDown={e => e.key === 'Enter' && addEntregavel(p.id)} />
                             <button onClick={() => addEntregavel(p.id)} className="btn-primary py-1.5 px-3"><Plus size={14} /></button>
                           </div>
-                        </div>
+                        </div>}
 
                         {/* CHECKLIST DE EXECUCAO */}
                         <div className="px-5 py-4">
@@ -779,10 +797,26 @@ export default function Insights() {
                             <DollarSign size={14} className="text-[#486c96]" />
                             <span className="text-xs font-bold text-[#486c96] uppercase tracking-wide">Orcamento</span>
                           </div>
+                          {(() => {
+                            const tot = calcularTotalOrcamento(p);
+                            if (!tot) return null;
+                            return (
+                              <div className="bg-[#486c96] text-white rounded-xl px-4 py-3 mb-3 flex items-center justify-between flex-wrap gap-2">
+                                <div className="text-xs opacity-70">
+                                  {tot.qtd
+                                    ? `Custo por kit: R$ ${tot.totalUnit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} × ${tot.qtd} kits`
+                                    : 'Total calculado dos itens'}
+                                </div>
+                                <div className="font-bold text-lg">
+                                  R$ {tot.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                </div>
+                              </div>
+                            );
+                          })()}
                           <textarea
                             className="w-full text-sm text-gray-700 border border-[#d2b99b]/30 rounded-xl p-3 resize-none focus:outline-none focus:border-[#486c96] bg-[#f9f1e7]/30"
                             rows={3}
-                            placeholder="Ex: Total cobrado do cliente: R$800&#10;Designer: R$300&#10;Canva Pro (proporcional): R$18&#10;Horas de trabalho: 6h"
+                            placeholder="Anotacoes: valor cobrado do cliente, honorarios, margem de lucro..."
                             value={editandoCampo[`${p.id}_orcamento`] !== undefined ? editandoCampo[`${p.id}_orcamento`] : (p.orcamento || '')}
                             onChange={e => setCampo(p.id, 'orcamento', e.target.value)}
                             onBlur={e => salvarCampo(p.id, 'orcamento', e.target.value)}
