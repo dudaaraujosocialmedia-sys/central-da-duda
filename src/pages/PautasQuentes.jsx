@@ -137,9 +137,42 @@ export default function PautasQuentes() {
   };
 
   const gerarIdeiasCliente = (clienteId, area) => {
-    const base = getIdeias(area);
-    const shuffled = [...base].sort(() => Math.random() - 0.5).slice(0, 10).map(texto => ({ texto, boa: false }));
-    const novo = { ...bancoIdeias, [clienteId]: { semana: semanaAtual, ideias: shuffled } };
+    const base = getIdeias(area); // pool completo do nicho
+    const dadosAtual = bancoIdeias[clienteId] || {};
+    const jaUsadas = new Set(dadosAtual.ja_usadas || []);
+    const dir = (direcionamentos[clienteId] || '').toLowerCase();
+
+    // Palavras-chave do direcionamento (ignora palavras curtas/comuns)
+    const stopWords = new Set(['para','com','que','uma','por','dos','das','sem','nao','mais','como','quando','onde','sobre','este','essa','isso','seu','sua','nos','nas','num','num']);
+    const keywords = dir
+      .split(/[\s,;.!?]+/)
+      .filter(w => w.length > 3 && !stopWords.has(w));
+
+    // Separa ideias novas (nao usadas) das ja vistas
+    let novas = base.filter(t => !jaUsadas.has(t));
+    let vistas = base.filter(t => jaUsadas.has(t));
+
+    // Se nao tem ideias novas suficientes, reseta o historico
+    if (novas.length < 5) {
+      novas = [...base];
+      vistas = [];
+    }
+
+    // Pontuacao por direcionamento: ideias que mencionam palavras-chave ficam na frente
+    const pontuar = (texto) => {
+      if (!keywords.length) return 0;
+      const tl = texto.toLowerCase();
+      return keywords.reduce((s, kw) => s + (tl.includes(kw) ? 1 : 0), 0);
+    };
+
+    novas.sort((a, b) => pontuar(b) - pontuar(a) || Math.random() - 0.5);
+    const escolhidas = novas.slice(0, 10);
+    const novasUsadas = [...jaUsadas, ...escolhidas].slice(-40); // guarda ultimas 40
+
+    const novo = {
+      ...bancoIdeias,
+      [clienteId]: { semana: semanaAtual, ideias: escolhidas.map(texto => ({ texto, boa: false })), ja_usadas: novasUsadas },
+    };
     setBancoIdeias(novo);
     set('banco_ideias', novo);
   };

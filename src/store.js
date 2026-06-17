@@ -44,6 +44,8 @@ const KEYS = {
   despesas_qtd_mes: 'da_despesas_qtd_mes',
   direcionamento_clientes: 'da_direcionamento_clientes',
   resultados: 'da_resultados',
+  cronograma: 'da_cronograma',
+  feedbacks: 'da_feedbacks',
 };
 
 export const ALL_BACKUP_KEYS = Object.values(KEYS);

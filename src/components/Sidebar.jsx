@@ -1,25 +1,27 @@
 import {
   LayoutDashboard, Flame, DollarSign, Target, TrendingUp,
   Calendar, MessageSquare, CheckSquare, GraduationCap,
-  Lightbulb, Lock, BookOpen, ChevronLeft, Menu, Settings, X, Building2, BarChart2
+  Lightbulb, Lock, BookOpen, Settings, X, Building2, BarChart2, CalendarDays, Heart
 } from 'lucide-react';
 
 const navItems = [
-  { id: 'dashboard', label: 'Inicio', icon: LayoutDashboard },
-  { id: 'pautas', label: 'Pautas Quentes', icon: Flame },
-  { id: 'financeiro', label: 'Financeiro', icon: DollarSign },
-  { id: 'metas', label: 'Metas', icon: Target },
-  { id: 'investimentos', label: 'Investimentos', icon: TrendingUp },
-  { id: 'calendario', label: 'Calendario', icon: Calendar },
-  { id: 'mensagens', label: 'Mensagens Prontas', icon: MessageSquare },
-  { id: 'checklist', label: 'Checklist', icon: CheckSquare },
-  { id: 'cursos', label: 'Cursos & Estudos', icon: GraduationCap },
-  { id: 'insights', label: 'Insights', icon: Lightbulb },
-  { id: 'resultados', label: 'Resultados', icon: BarChart2 },
-  { id: 'senhas', label: 'Cofre de Senhas', icon: Lock },
-  { id: 'processos', label: 'Processos', icon: BookOpen },
-  { id: 'empresa', label: 'Minha Empresa', icon: Building2 },
-  { id: 'ajustes', label: 'Ajustes', icon: Settings },
+  { id: 'dashboard',   label: 'Inicio',            icon: LayoutDashboard },
+  { id: 'pautas',      label: 'Pautas Quentes',     icon: Flame },
+  { id: 'cronograma',  label: 'Cronograma',         icon: CalendarDays },
+  { id: 'financeiro',  label: 'Financeiro',         icon: DollarSign },
+  { id: 'metas',       label: 'Metas',              icon: Target },
+  { id: 'investimentos', label: 'Investimentos',    icon: TrendingUp },
+  { id: 'calendario',  label: 'Calendario',         icon: Calendar },
+  { id: 'mensagens',   label: 'Mensagens Prontas',  icon: MessageSquare },
+  { id: 'checklist',   label: 'Checklist',          icon: CheckSquare },
+  { id: 'cursos',      label: 'Cursos & Estudos',   icon: GraduationCap },
+  { id: 'insights',    label: 'Insights',           icon: Lightbulb },
+  { id: 'resultados',  label: 'Resultados',         icon: BarChart2 },
+  { id: 'feedbacks',   label: 'Feedbacks',          icon: Heart },
+  { id: 'senhas',      label: 'Cofre de Senhas',    icon: Lock },
+  { id: 'processos',   label: 'Processos',          icon: BookOpen },
+  { id: 'empresa',     label: 'Minha Empresa',      icon: Building2 },
+  { id: 'ajustes',     label: 'Ajustes',            icon: Settings },
 ];
 
 export default function Sidebar({ currentPage, onNavigate, open, onToggle }) {

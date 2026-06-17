@@ -18,6 +18,8 @@ import Ajustes from './pages/Ajustes';
 import ClienteDetalhe from './pages/ClienteDetalhe';
 import Empresa from './pages/Empresa';
 import Resultados from './pages/Resultados';
+import Cronograma from './pages/Cronograma';
+import Feedbacks from './pages/Feedbacks';
 
 const PAGES = {
   dashboard: Dashboard,
@@ -34,6 +36,8 @@ const PAGES = {
   processos: Processos,
   empresa: Empresa,
   resultados: Resultados,
+  cronograma: Cronograma,
+  feedbacks: Feedbacks,
   ajustes: Ajustes,
 };
 
@@ -42,7 +46,7 @@ const PAGE_LABELS = {
   metas: 'Metas', investimentos: 'Investimentos', calendario: 'Calendario',
   mensagens: 'Mensagens Prontas', checklist: 'Checklist', cursos: 'Cursos & Estudos',
   insights: 'Insights', senhas: 'Cofre de Senhas', processos: 'Processos',
-  empresa: 'Minha Empresa', resultados: 'Resultados', ajustes: 'Ajustes',
+  empresa: 'Minha Empresa', resultados: 'Resultados', cronograma: 'Cronograma', feedbacks: 'Feedbacks', ajustes: 'Ajustes',
 };
 
 export default function App() {

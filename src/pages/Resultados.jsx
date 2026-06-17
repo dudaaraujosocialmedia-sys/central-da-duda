@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { getOrDefault, set } from '../store';
-import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { getOrDefault, set, supabase } from '../store';
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus, RefreshCw, ExternalLink } from 'lucide-react';
 
 const METRICAS = [
   { key: 'seguidores',  label: 'Seguidores totais',    placeholder: '0',     sufixo: '',  tipo: 'inteiro' },
@@ -58,7 +58,42 @@ export default function Resultados() {
   const [mes, setMes] = useState(mesAtual());
   const [form, setForm] = useState({});
 
+  const [buscando, setBuscando] = useState(false);
+  const [msgBusca, setMsgBusca] = useState('');
+
   const salvar = (r) => { setResultados(r); set('resultados', r); };
+
+  const buscarInstagram = async () => {
+    if (!clienteId) return;
+    const cliente = clientes.find(c => String(c.id) === clienteId);
+    const perfil = cliente?.perfil;
+    if (!perfil) { setMsgBusca('Este cliente nao tem perfil do Instagram cadastrado.'); return; }
+    setBuscando(true);
+    setMsgBusca('');
+    try {
+      const { data, error } = await supabase.functions.invoke('ig-fetch', { body: { username: perfil } });
+      if (error || data?.error) {
+        setMsgBusca(data?.error || 'Nao foi possivel buscar. Preencha manualmente.');
+      } else {
+        const novo = {
+          ...resultados,
+          [clienteId]: {
+            ...(resultados[clienteId] || {}),
+            [mes]: {
+              ...(resultados[clienteId]?.[mes] || {}),
+              ...(data.seguidores != null ? { seguidores: data.seguidores } : {}),
+              ...(data.posts != null ? { posts: data.posts } : {}),
+            },
+          },
+        };
+        salvar(novo);
+        setMsgBusca(`Atualizado: ${data.seguidores != null ? `${data.seguidores.toLocaleString('pt-BR')} seguidores` : ''}${data.posts != null ? `, ${data.posts} posts` : ''}`);
+      }
+    } catch {
+      setMsgBusca('Erro ao conectar. Preencha manualmente.');
+    }
+    setBuscando(false);
+  };
 
   const dadosMes = useMemo(() => (resultados[clienteId] || {})[mes] || {}, [resultados, clienteId, mes]);
   const dadosAnt = useMemo(() => (resultados[clienteId] || {})[mesAnterior(mes)] || {}, [resultados, clienteId, mes]);
@@ -137,8 +172,8 @@ export default function Resultados() {
 
           {clienteId && (
             <>
-              {/* Seletor de mês */}
-              <div className="flex items-center gap-3 mb-6">
+              {/* Seletor de mês + ações Instagram */}
+              <div className="flex items-center gap-3 mb-4 flex-wrap">
                 <button onClick={() => setMes(mesAnterior(mes))} className="p-2 rounded-xl bg-white border border-[#d2b99b]/40 text-[#486c96] hover:bg-[#f9f1e7]">
                   <ChevronLeft size={16} />
                 </button>
@@ -147,8 +182,25 @@ export default function Resultados() {
                   className={`p-2 rounded-xl border text-[#486c96] transition-colors ${mes >= hoje ? 'border-gray-100 text-gray-300' : 'bg-white border-[#d2b99b]/40 hover:bg-[#f9f1e7]'}`}>
                   <ChevronRight size={16} />
                 </button>
-                <span className="text-xs text-gray-400 ml-1">{cliente?.nicho || cliente?.area || ''}</span>
+                <div className="flex items-center gap-2 ml-auto flex-wrap">
+                  {cliente?.perfil && (
+                    <a href={`https://instagram.com/${cliente.perfil.replace('@','')}`} target="_blank" rel="noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#d2b99b]/40 bg-white text-[#486c96] text-xs font-semibold hover:bg-[#f9f1e7] transition-colors">
+                      <ExternalLink size={13} /> {cliente.perfil}
+                    </a>
+                  )}
+                  <button onClick={buscarInstagram} disabled={buscando}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#486c96] text-white text-xs font-semibold hover:bg-[#5f86ad] disabled:opacity-60 transition-colors">
+                    <RefreshCw size={13} className={buscando ? 'animate-spin' : ''} />
+                    {buscando ? 'Buscando...' : 'Buscar no Instagram'}
+                  </button>
+                </div>
               </div>
+              {msgBusca && (
+                <div className={`mb-4 px-4 py-2 rounded-xl text-xs font-semibold ${msgBusca.startsWith('Atualizado') ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'}`}>
+                  {msgBusca}
+                </div>
+              )}
 
               {/* Grid de métricas */}
               <div className="grid grid-cols-2 gap-3 mb-5 sm:grid-cols-3">
