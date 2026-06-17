@@ -113,6 +113,69 @@ const TEMPLATES_CHECKLIST = {
   outro: [],
 };
 
+const CAMPOS_TIPO = {
+  kit_data: [
+    { key: 'tema', label: 'Tema / data comemorativa', placeholder: 'Ex: Natal, Fim de Ano, Pascoa, Dia das Maes...' },
+    { key: 'quantidade', label: 'Para quantas pessoas / kits', placeholder: 'Ex: 15 kits, 3 clientes distintos...' },
+    { key: 'conteudo_caixa', label: 'O que vai dentro da caixa', placeholder: 'Ex: Bloco de notas personalizado, caneca, card de agradecimento...', multi: true },
+    { key: 'mensagem_carta', label: 'Texto da carta / mensagem', placeholder: 'Escreva aqui o texto que vai na carta ou tag...', multi: true },
+    { key: 'valor_caixa', label: 'Valor da caixa / embalagem (R$)', placeholder: 'Ex: R$ 12,00 cada' },
+    { key: 'valor_adesivo', label: 'Valor do adesivo / tag (R$)', placeholder: 'Ex: R$ 3,50 cada' },
+    { key: 'artes', label: 'Artes necessarias', placeholder: 'Ex: Design do adesivo, post feed anuncio, story unboxing, reels surpresa...', multi: true },
+  ],
+  kit_aniversario: [
+    { key: 'data_aniversario', label: 'Data do aniversario', placeholder: 'Ex: 12/03' },
+    { key: 'nome', label: 'Nome / empresa aniversariante', placeholder: 'Ex: Dra. Ana Lima' },
+    { key: 'mensagem', label: 'Mensagem personalizada', placeholder: 'Ex: "Parabens, Dra. Ana! Que sua jornada continue transformando vidas."', multi: true },
+    { key: 'pecas', label: 'Pecas do kit', placeholder: 'Ex: Post feed, story interativo, reels comemorativo, destaque especial...' },
+    { key: 'tema_visual', label: 'Tema visual / referencias', placeholder: 'Ex: Dourado e branco, minimalista, flores...' },
+  ],
+  ebook: [
+    { key: 'titulo_ebook', label: 'Titulo do ebook', placeholder: 'Ex: "Guia Completo de Nutricao Esportiva"' },
+    { key: 'estrutura', label: 'Capitulos / estrutura', placeholder: 'Ex: Intro, Cap 1: Macros, Cap 2: Pre-treino, Cap 3: Recuperacao...', multi: true },
+    { key: 'paginas', label: 'Numero de paginas previsto', placeholder: 'Ex: 20 paginas' },
+    { key: 'distribuicao', label: 'Onde sera distribuido', placeholder: 'Ex: Link na bio, stories, landing page Hotmart...' },
+    { key: 'preco', label: 'Preco (se pago)', placeholder: 'Ex: R$ 47,00 / gratuito para captacao de leads' },
+  ],
+  infoproduto: [
+    { key: 'formato', label: 'Formato do produto', placeholder: 'Ex: Mini-curso gravado, template Notion, planilha, mentoria...' },
+    { key: 'resultado', label: 'Resultado prometido / proposta', placeholder: 'Ex: "Em 30 dias voce vai organizar sua rotina financeira"', multi: true },
+    { key: 'plataforma', label: 'Plataforma de venda', placeholder: 'Ex: Hotmart, Kiwify, Gumroad, Monetizze...' },
+    { key: 'preco', label: 'Preco de venda', placeholder: 'Ex: R$ 97,00' },
+    { key: 'data_lancamento', label: 'Data de lancamento', placeholder: 'Ex: 15/03/2025' },
+    { key: 'aquecimento', label: 'Estrategia de aquecimento', placeholder: 'Ex: 7 dias de stories, enquete, lista VIP no WhatsApp...', multi: true },
+  ],
+  campanha: [
+    { key: 'tema', label: 'Tema da campanha', placeholder: 'Ex: Black Friday, Dia Internacional da Mulher, Volta as Aulas...' },
+    { key: 'objetivo', label: 'Objetivo', placeholder: 'Ex: Vendas de pacote mensal, captacao de leads, awareness...' },
+    { key: 'periodo', label: 'Periodo da campanha', placeholder: 'Ex: 20/11 a 30/11' },
+    { key: 'cta', label: 'CTA principal', placeholder: 'Ex: "Garanta sua vaga", "Fale comigo no WhatsApp", "Link na bio"' },
+    { key: 'pecas', label: 'Pecas planejadas', placeholder: 'Ex: 3 posts feed, 5 stories, 1 reels, 1 sequencia de stories de venda...', multi: true },
+  ],
+  lancamento: [
+    { key: 'produto', label: 'Produto / servico lancado', placeholder: 'Ex: Pacote de Gestao de Trafego, Mentoria Mensal, Ebook...' },
+    { key: 'data_lancamento', label: 'Data oficial de lancamento', placeholder: 'Ex: 01/04/2025' },
+    { key: 'preco', label: 'Preco de lancamento', placeholder: 'Ex: R$ 297,00 / R$ 97,00 para lista VIP' },
+    { key: 'meta', label: 'Meta de vendas / leads', placeholder: 'Ex: 10 clientes, 100 leads...' },
+    { key: 'pre_lancamento', label: 'Estrategia de pre-lancamento', placeholder: 'Ex: 14 dias de conteudo de aquecimento, lista VIP, teasers no stories...', multi: true },
+  ],
+  trafego: [
+    { key: 'objetivo', label: 'Objetivo da campanha', placeholder: 'Ex: Gerar leads, vendas diretas, crescer seguidores...' },
+    { key: 'plataforma', label: 'Plataforma', placeholder: 'Ex: Meta Ads (Instagram + Facebook), Google Ads...' },
+    { key: 'orcamento_ads', label: 'Orcamento de anuncios (R$)', placeholder: 'Ex: R$ 500/mes ou R$ 50/dia' },
+    { key: 'publico', label: 'Publico-alvo', placeholder: 'Ex: Mulheres 25-45, RS, interesse em saude e bem-estar...' },
+    { key: 'meta_resultado', label: 'Meta de resultado', placeholder: 'Ex: CPA maximo R$ 30, 50 leads/mes, ROAS minimo 3x...' },
+    { key: 'criativos', label: 'Criativos planejados', placeholder: 'Ex: 2 videos 15s, 3 imagens estaticas, copy teste A/B...', multi: true },
+  ],
+  identidade: [
+    { key: 'elementos', label: 'Elementos a criar', placeholder: 'Ex: Logo + variacoes, paleta de cores, tipografia, templates stories, capa destaque...', multi: true },
+    { key: 'referencias', label: 'Referencias visuais do cliente', placeholder: 'Ex: Link Pinterest, perfis que admira, palavras: moderno, feminino, minimalista...' },
+    { key: 'cores', label: 'Cores / estilo solicitado', placeholder: 'Ex: Dourado, branco e preto. Elegante e profissional.' },
+    { key: 'fontes', label: 'Fontes solicitadas', placeholder: 'Ex: Serif para titulo, sans-serif para corpo.' },
+    { key: 'aplicacoes', label: 'Onde sera aplicada', placeholder: 'Ex: Instagram, site, cartao de visita, materiais impressos...' },
+  ],
+};
+
 const ENTREGAVEIS_SUGERIDOS = {
   kit_data:        ['Posts para feed', 'Stories', 'Reels', 'Legenda pronta'],
   kit_aniversario: ['Post de aniversario', 'Story personalizado', 'Destaque especial'],
@@ -253,6 +316,21 @@ export default function Insights() {
 
   const removerTask = (projId, tId) =>
     salvarProjetos(projetos.map(p => p.id === projId ? { ...p, tasks: (p.tasks || []).filter(t => t.id !== tId) } : p));
+
+  const getDetalhe = (p, key) =>
+    editandoCampo[`${p.id}_dt_${key}`] !== undefined
+      ? editandoCampo[`${p.id}_dt_${key}`]
+      : ((p.detalhes_tipo || {})[key] || '');
+
+  const setDetalhe = (projId, key, val) =>
+    setEditandoCampo(e => ({ ...e, [`${projId}_dt_${key}`]: val }));
+
+  const salvarDetalhe = (projId, key, val) => {
+    salvarProjetos(projetos.map(p => p.id === projId
+      ? { ...p, detalhes_tipo: { ...(p.detalhes_tipo || {}), [key]: val } }
+      : p));
+    setEditandoCampo(e => { const x = { ...e }; delete x[`${projId}_dt_${key}`]; return x; });
+  };
 
   const addLink = (projId) => {
     const url = (novaEntrada[`l_${projId}`] || '').trim();
@@ -533,6 +611,42 @@ export default function Insights() {
                     {/* Painel de planejamento */}
                     {aberto && (
                       <div className="border-t border-[#d2b99b]/20 divide-y divide-[#d2b99b]/10">
+
+                        {/* CAMPOS ESPECIFICOS DO TIPO */}
+                        {CAMPOS_TIPO[p.tipo] && (
+                          <div className="px-5 py-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="text-base">{tipo?.emoji}</span>
+                              <span className="text-xs font-bold text-[#486c96] uppercase tracking-wide">Detalhes do projeto</span>
+                            </div>
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                              {CAMPOS_TIPO[p.tipo].map(campo => (
+                                <div key={campo.key} className={campo.multi ? 'sm:col-span-2' : ''}>
+                                  <label className="label">{campo.label}</label>
+                                  {campo.multi ? (
+                                    <textarea
+                                      className="w-full text-sm text-gray-700 border border-[#d2b99b]/30 rounded-xl p-3 resize-none focus:outline-none focus:border-[#486c96] bg-[#f9f1e7]/30"
+                                      rows={3}
+                                      placeholder={campo.placeholder}
+                                      value={getDetalhe(p, campo.key)}
+                                      onChange={e => setDetalhe(p.id, campo.key, e.target.value)}
+                                      onBlur={e => salvarDetalhe(p.id, campo.key, e.target.value)}
+                                    />
+                                  ) : (
+                                    <input
+                                      className="input"
+                                      placeholder={campo.placeholder}
+                                      value={getDetalhe(p, campo.key)}
+                                      onChange={e => setDetalhe(p.id, campo.key, e.target.value)}
+                                      onBlur={e => salvarDetalhe(p.id, campo.key, e.target.value)}
+                                    />
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            <p className="text-[10px] text-gray-400 mt-2">Salva automaticamente ao clicar fora ✓</p>
+                          </div>
+                        )}
 
                         {/* ENTREGAVEIS */}
                         <div className="px-5 py-4">
