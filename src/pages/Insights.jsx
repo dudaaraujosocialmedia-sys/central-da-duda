@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { getOrDefault, set } from '../store';
-import { Lightbulb, Plus, Trash2, Check, X, Edit2, FolderKanban, ChevronDown, ChevronUp, FileText } from 'lucide-react';
+import { Lightbulb, Plus, Trash2, Check, X, Edit2, FolderKanban, ChevronDown, ChevronUp, FileText, Link, DollarSign, ListChecks, StickyNote, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -59,10 +59,14 @@ export default function Insights() {
   const [projetos, setProjetos] = useState(() => getOrDefault('projetos', []));
   const [showFormProj, setShowFormProj] = useState(false);
   const [editProjId, setEditProjId] = useState(null);
-  const [formProj, setFormProj] = useState({ titulo: '', descricao: '', status: 'Ideia', prazo: '', cliente_id: '', notas: '' });
+  const FORM_PROJ_VAZIO = { titulo: '', descricao: '', status: 'Ideia', prazo: '', cliente_id: '' };
+  const [formProj, setFormProj] = useState(FORM_PROJ_VAZIO);
   const [statusFiltro, setStatusFiltro] = useState('todos');
-  const [notasAbertas, setNotasAbertas] = useState({});
-  const [notasEditando, setNotasEditando] = useState({});
+  const [detalhesAbertos, setDetalhesAbertos] = useState({});
+  // Edição inline dos campos de detalhes
+  const [editandoCampo, setEditandoCampo] = useState({}); // { [projId_campo]: valor }
+  // Checklist de tarefas por projeto
+  const [novaTaskProj, setNovaTaskProj] = useState({});
 
   const salvarProjetos = (lista) => { setProjetos(lista); set('projetos', lista); };
 
@@ -75,15 +79,54 @@ export default function Insights() {
     } else {
       salvarProjetos([...projetos, item]);
     }
-    setFormProj({ titulo: '', descricao: '', status: 'Ideia', prazo: '', cliente_id: '', notas: '' });
+    setFormProj(FORM_PROJ_VAZIO);
     setShowFormProj(false);
   };
 
-  const salvarNotas = (projId, texto) => {
-    salvarProjetos(projetos.map(p => p.id === projId ? { ...p, notas: texto } : p));
+  const toggleDetalhes = (id) => setDetalhesAbertos(d => ({ ...d, [id]: !d[id] }));
+
+  const salvarCampo = (projId, campo, valor) => {
+    salvarProjetos(projetos.map(p => p.id === projId ? { ...p, [campo]: valor } : p));
+    setEditandoCampo(e => { const x = { ...e }; delete x[`${projId}_${campo}`]; return x; });
   };
 
-  const toggleNotas = (id) => setNotasAbertas(n => ({ ...n, [id]: !n[id] }));
+  const campoVal = (projId, campo, fallback = '') => {
+    const chave = `${projId}_${campo}`;
+    return editandoCampo[chave] !== undefined ? editandoCampo[chave] : fallback;
+  };
+
+  const setCampo = (projId, campo, valor) =>
+    setEditandoCampo(e => ({ ...e, [`${projId}_${campo}`]: valor }));
+
+  const adicionarLink = (projId) => {
+    const texto = (novaTaskProj[`link_${projId}`] || '').trim();
+    if (!texto) return;
+    const proj = projetos.find(p => p.id === projId);
+    const links = proj?.links || [];
+    salvarProjetos(projetos.map(p => p.id === projId ? { ...p, links: [...links, { id: Date.now(), url: texto }] } : p));
+    setNovaTaskProj(n => ({ ...n, [`link_${projId}`]: '' }));
+  };
+
+  const removerLink = (projId, linkId) => {
+    salvarProjetos(projetos.map(p => p.id === projId ? { ...p, links: (p.links || []).filter(l => l.id !== linkId) } : p));
+  };
+
+  const adicionarTask = (projId) => {
+    const texto = (novaTaskProj[`task_${projId}`] || '').trim();
+    if (!texto) return;
+    const proj = projetos.find(p => p.id === projId);
+    const tasks = proj?.tasks || [];
+    salvarProjetos(projetos.map(p => p.id === projId ? { ...p, tasks: [...tasks, { id: Date.now(), texto, feito: false }] } : p));
+    setNovaTaskProj(n => ({ ...n, [`task_${projId}`]: '' }));
+  };
+
+  const toggleTask = (projId, taskId) => {
+    salvarProjetos(projetos.map(p => p.id === projId ? { ...p, tasks: (p.tasks || []).map(t => t.id === taskId ? { ...t, feito: !t.feito } : t) } : p));
+  };
+
+  const removerTask = (projId, taskId) => {
+    salvarProjetos(projetos.map(p => p.id === projId ? { ...p, tasks: (p.tasks || []).filter(t => t.id !== taskId) } : p));
+  };
 
   const statusCor = { 'Ideia': 'bg-gray-100 text-gray-600', 'Planejando': 'bg-blue-50 text-blue-700', 'Em andamento': 'bg-yellow-50 text-yellow-700', 'Concluido': 'bg-green-50 text-green-700', 'Pausado': 'bg-red-50 text-red-500' };
 
@@ -238,12 +281,11 @@ export default function Insights() {
                   </select>
                 </div>
                 <div>
-                  <label className="label">Descricao resumida</label>
+                  <label className="label">Descricao</label>
                   <textarea className="input" rows={2} value={formProj.descricao} onChange={e => setFormProj({...formProj, descricao: e.target.value})} placeholder="Uma frase descrevendo o projeto..." />
                 </div>
-                <div>
-                  <label className="label">Notas completas do projeto</label>
-                  <textarea className="input" rows={6} value={formProj.notas} onChange={e => setFormProj({...formProj, notas: e.target.value})} placeholder={'Anote tudo aqui:\n— Orcamento\n— Produtos / entregaveis\n— Referências visuais\n— Observacoes do cliente\n— Prazos internos\n— Checklist de tarefas...'} />
+                <div className="col-span-2 text-xs text-gray-400 bg-[#f9f1e7] rounded-xl px-3 py-2">
+                  Links, orcamento, checklist e observacoes ficam dentro do card do projeto depois de criar.
                 </div>
               </div>
               <div className="flex gap-2 mt-4">
@@ -275,7 +317,7 @@ export default function Insights() {
                       <h3 className="font-bold text-[#486c96]">{p.titulo}</h3>
                     </div>
                     <div className="flex gap-1 flex-shrink-0">
-                      <button onClick={() => { setFormProj({ titulo: p.titulo, descricao: p.descricao || '', status: p.status, prazo: p.prazo || '', cliente_id: p.cliente_id || '', notas: p.notas || '' }); setEditProjId(p.id); setShowFormProj(true); }} className="text-[#486c96]"><Edit2 size={13} /></button>
+                      <button onClick={() => { setFormProj({ titulo: p.titulo, descricao: p.descricao || '', status: p.status, prazo: p.prazo || '', cliente_id: p.cliente_id || '' }); setEditProjId(p.id); setShowFormProj(true); }} className="text-[#486c96]"><Edit2 size={13} /></button>
                       <button onClick={() => salvarProjetos(projetos.filter(x => x.id !== p.id))} className="text-gray-300 hover:text-red-400"><Trash2 size={13} /></button>
                     </div>
                   </div>
@@ -289,24 +331,108 @@ export default function Insights() {
                         </button>
                       ))}
                     </div>
-                    <button onClick={() => toggleNotas(p.id)}
+                    <button onClick={() => toggleDetalhes(p.id)}
                       className="flex items-center gap-1 text-xs text-[#486c96] font-semibold px-2 py-1 rounded-lg hover:bg-[#f9f1e7] transition-colors flex-shrink-0">
                       <FileText size={12} />
-                      {notasAbertas[p.id] ? 'Fechar notas' : (p.notas ? 'Ver notas' : 'Adicionar notas')}
-                      {notasAbertas[p.id] ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                      {detalhesAbertos[p.id] ? 'Fechar' : 'Detalhes do projeto'}
+                      {detalhesAbertos[p.id] ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                     </button>
                   </div>
-                  {notasAbertas[p.id] && (
-                    <div className="mt-3 pt-3 border-t border-[#d2b99b]/20">
-                      <textarea
-                        className="w-full text-sm text-gray-700 leading-relaxed border border-[#d2b99b]/30 rounded-xl p-3 resize-none focus:outline-none focus:border-[#486c96] bg-[#f9f1e7]/40 min-h-[120px]"
-                        placeholder={'Anote tudo aqui: orcamento, produtos, entregaveis, referencias visuais, observacoes do cliente, prazos internos, checklist...'}
-                        value={notasEditando[p.id] !== undefined ? notasEditando[p.id] : (p.notas || '')}
-                        onChange={e => setNotasEditando(n => ({ ...n, [p.id]: e.target.value }))}
-                        onBlur={e => { salvarNotas(p.id, e.target.value); setNotasEditando(n => { const x = {...n}; delete x[p.id]; return x; }); }}
-                        rows={6}
-                      />
-                      <p className="text-[10px] text-gray-400 mt-1">Salva automaticamente ao clicar fora ✓</p>
+
+                  {detalhesAbertos[p.id] && (
+                    <div className="mt-4 pt-4 border-t border-[#d2b99b]/20 space-y-5">
+
+                      {/* ORCAMENTO */}
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <DollarSign size={14} className="text-[#486c96]" />
+                          <span className="text-xs font-bold text-[#486c96] uppercase tracking-wide">Orcamento</span>
+                        </div>
+                        <textarea
+                          className="w-full text-sm text-gray-700 border border-[#d2b99b]/30 rounded-xl p-3 resize-none focus:outline-none focus:border-[#486c96] bg-[#f9f1e7]/30"
+                          rows={3}
+                          placeholder="Ex: Total: R$1.500 — Designer: R$300, Canva: R$55, Horas de gestao: 8h..."
+                          value={editandoCampo[`${p.id}_orcamento`] !== undefined ? editandoCampo[`${p.id}_orcamento`] : (p.orcamento || '')}
+                          onChange={e => setCampo(p.id, 'orcamento', e.target.value)}
+                          onBlur={e => salvarCampo(p.id, 'orcamento', e.target.value)}
+                        />
+                      </div>
+
+                      {/* O QUE PRECISA / CHECKLIST */}
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <ListChecks size={14} className="text-[#486c96]" />
+                          <span className="text-xs font-bold text-[#486c96] uppercase tracking-wide">O que precisa</span>
+                        </div>
+                        <div className="space-y-1.5 mb-2">
+                          {(p.tasks || []).map(t => (
+                            <div key={t.id} className="flex items-center gap-2">
+                              <button onClick={() => toggleTask(p.id, t.id)}
+                                className={`w-5 h-5 rounded flex-shrink-0 border-2 flex items-center justify-center transition-colors ${t.feito ? 'bg-[#486c96] border-[#486c96]' : 'border-[#d2b99b]'}`}>
+                                {t.feito && <Check size={11} className="text-white" />}
+                              </button>
+                              <span className={`text-sm flex-1 ${t.feito ? 'line-through text-gray-400' : 'text-gray-700'}`}>{t.texto}</span>
+                              <button onClick={() => removerTask(p.id, t.id)} className="text-gray-200 hover:text-red-400"><X size={12} /></button>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <input
+                            className="input flex-1 text-sm py-1.5"
+                            placeholder="Ex: Criar briefing, Arte de capa, Aprovacao do cliente..."
+                            value={novaTaskProj[`task_${p.id}`] || ''}
+                            onChange={e => setNovaTaskProj(n => ({ ...n, [`task_${p.id}`]: e.target.value }))}
+                            onKeyDown={e => e.key === 'Enter' && adicionarTask(p.id)}
+                          />
+                          <button onClick={() => adicionarTask(p.id)} className="btn-primary py-1.5 px-3 text-sm"><Plus size={14} /></button>
+                        </div>
+                      </div>
+
+                      {/* LINKS */}
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Link size={14} className="text-[#486c96]" />
+                          <span className="text-xs font-bold text-[#486c96] uppercase tracking-wide">Links e produtos</span>
+                        </div>
+                        <div className="space-y-1.5 mb-2">
+                          {(p.links || []).map(l => (
+                            <div key={l.id} className="flex items-center gap-2 bg-[#f9f1e7]/50 rounded-lg px-3 py-1.5">
+                              <ExternalLink size={12} className="text-[#486c96] flex-shrink-0" />
+                              <a href={l.url.startsWith('http') ? l.url : `https://${l.url}`} target="_blank" rel="noreferrer"
+                                className="text-sm text-[#486c96] underline underline-offset-2 flex-1 truncate">{l.url}</a>
+                              <button onClick={() => removerLink(p.id, l.id)} className="text-gray-200 hover:text-red-400 flex-shrink-0"><X size={12} /></button>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <input
+                            className="input flex-1 text-sm py-1.5"
+                            placeholder="Cole o link aqui (Drive, Canva, site, etc.)"
+                            value={novaTaskProj[`link_${p.id}`] || ''}
+                            onChange={e => setNovaTaskProj(n => ({ ...n, [`link_${p.id}`]: e.target.value }))}
+                            onKeyDown={e => e.key === 'Enter' && adicionarLink(p.id)}
+                          />
+                          <button onClick={() => adicionarLink(p.id)} className="btn-primary py-1.5 px-3 text-sm"><Plus size={14} /></button>
+                        </div>
+                      </div>
+
+                      {/* OBSERVACOES */}
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <StickyNote size={14} className="text-[#486c96]" />
+                          <span className="text-xs font-bold text-[#486c96] uppercase tracking-wide">Observacoes gerais</span>
+                        </div>
+                        <textarea
+                          className="w-full text-sm text-gray-700 border border-[#d2b99b]/30 rounded-xl p-3 resize-none focus:outline-none focus:border-[#486c96] bg-[#f9f1e7]/30"
+                          rows={4}
+                          placeholder="Qualquer coisa importante: pedidos do cliente, referencias visuais, restricoes, contatos, combinados..."
+                          value={editandoCampo[`${p.id}_observacoes`] !== undefined ? editandoCampo[`${p.id}_observacoes`] : (p.observacoes || '')}
+                          onChange={e => setCampo(p.id, 'observacoes', e.target.value)}
+                          onBlur={e => salvarCampo(p.id, 'observacoes', e.target.value)}
+                        />
+                      </div>
+
+                      <p className="text-[10px] text-gray-400">Tudo salva automaticamente ao clicar fora ✓</p>
                     </div>
                   )}
                 </div>
