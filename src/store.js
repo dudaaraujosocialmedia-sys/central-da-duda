@@ -43,6 +43,7 @@ const KEYS = {
   categorias_calendario: 'da_categorias_calendario',
   despesas_qtd_mes: 'da_despesas_qtd_mes',
   direcionamento_clientes: 'da_direcionamento_clientes',
+  resultados: 'da_resultados',
 };
 
 export const ALL_BACKUP_KEYS = Object.values(KEYS);

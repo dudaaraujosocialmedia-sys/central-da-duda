@@ -17,6 +17,7 @@ import Processos from './pages/Processos';
 import Ajustes from './pages/Ajustes';
 import ClienteDetalhe from './pages/ClienteDetalhe';
 import Empresa from './pages/Empresa';
+import Resultados from './pages/Resultados';
 
 const PAGES = {
   dashboard: Dashboard,
@@ -32,6 +33,7 @@ const PAGES = {
   senhas: CofreSenhas,
   processos: Processos,
   empresa: Empresa,
+  resultados: Resultados,
   ajustes: Ajustes,
 };
 
@@ -40,7 +42,7 @@ const PAGE_LABELS = {
   metas: 'Metas', investimentos: 'Investimentos', calendario: 'Calendario',
   mensagens: 'Mensagens Prontas', checklist: 'Checklist', cursos: 'Cursos & Estudos',
   insights: 'Insights', senhas: 'Cofre de Senhas', processos: 'Processos',
-  empresa: 'Minha Empresa', ajustes: 'Ajustes',
+  empresa: 'Minha Empresa', resultados: 'Resultados', ajustes: 'Ajustes',
 };
 
 export default function App() {
