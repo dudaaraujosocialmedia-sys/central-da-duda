@@ -38,10 +38,41 @@ export default function Calendario() {
   const [novoPeriodo, setNovoPeriodo] = useState({ nome: '', dia_inicio: '', dia_fim: '', cor: '#486c96' });
 
   const clientes = getOrDefault('clientes', []);
+  const despesas = getOrDefault('despesas', []);
   const TIPOS = [...TIPOS_FIXOS, ...categorias];
 
   const salvarEventos = (lista) => { setEventos(lista); set('eventos', lista); };
   const salvarCategorias = (lista) => { setCategorias(lista); set('categorias_calendario', lista); };
+
+  // Pagamentos de clientes automaticos
+  const pagamentosClientes = useMemo(() => {
+    const ano = mesAtual.getFullYear();
+    const mes = String(mesAtual.getMonth() + 1).padStart(2, '0');
+    return clientes
+      .filter(c => c.dia_pagamento && c.status !== 'inativo')
+      .map(c => ({
+        id: `pgto_${c.id}_${ano}_${mes}`,
+        titulo: `Pagamento: ${c.nome.split(' ')[0]}${c.valor ? ` — R$ ${Number(c.valor).toLocaleString('pt-BR')}` : ''}`,
+        tipo: 'pagamento', cor: '#22c55e',
+        data: `${ano}-${mes}-${String(c.dia_pagamento).padStart(2, '0')}`,
+        isAutomatico: true,
+      }));
+  }, [clientes, mesAtual]);
+
+  // Vencimentos de despesas automaticos
+  const vencimentosDespesas = useMemo(() => {
+    const ano = mesAtual.getFullYear();
+    const mes = String(mesAtual.getMonth() + 1).padStart(2, '0');
+    return despesas
+      .filter(d => d.vencimento && d.frequencia !== 'Unica vez')
+      .map(d => ({
+        id: `desp_${d.id}_${ano}_${mes}`,
+        titulo: `Vence: ${d.nome}${d.valor_unit ? ` — R$ ${Number(d.valor_unit).toLocaleString('pt-BR')}` : ''}`,
+        tipo: 'pagamento', cor: '#ef4444',
+        data: `${ano}-${mes}-${String(d.vencimento).padStart(2, '0')}`,
+        isAutomatico: true,
+      }));
+  }, [despesas, mesAtual]);
 
   // Aniversarios dos clientes
   const aniversarios = useMemo(() => {
@@ -68,7 +99,7 @@ export default function Calendario() {
     return evts;
   }, [clientes, mesAtual]);
 
-  const todosEventos = useMemo(() => [...eventos, ...aniversarios], [eventos, aniversarios]);
+  const todosEventos = useMemo(() => [...eventos, ...aniversarios, ...pagamentosClientes, ...vencimentosDespesas], [eventos, aniversarios, pagamentosClientes, vencimentosDespesas]);
 
   const submit = () => {
     if (!form.titulo) return;
@@ -218,6 +249,10 @@ export default function Calendario() {
                 {t.label}
               </div>
             ))}
+            <div className="flex items-center gap-1 text-xs text-gray-500">
+              <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#ef4444' }} />
+              Vencimento despesa
+            </div>
           </div>
         </div>
 
@@ -411,7 +446,7 @@ export default function Calendario() {
                               </div>
                             )}
                           </div>
-                          {!ev.isAniversario && (
+                          {!ev.isAniversario && !ev.isAutomatico && (
                             <button onClick={() => remover(ev.id)} className="text-red-400 hover:text-red-600 flex-shrink-0"><Trash2 size={12} /></button>
                           )}
                         </div>
