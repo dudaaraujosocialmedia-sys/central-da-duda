@@ -3,10 +3,10 @@ import { getOrDefault, set } from '../store';
 import { Plus, Trash2, Edit2, Heart, X, Check } from 'lucide-react';
 
 const TIPOS = [
-  { id: 'elogio',    label: 'Elogio',    emoji: '💛', borda: 'border-yellow-100', badge: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
-  { id: 'resultado', label: 'Resultado', emoji: '📈', borda: 'border-green-100',  badge: 'bg-green-50 text-green-700 border-green-200'  },
-  { id: 'indicacao', label: 'Indicacao', emoji: '🤝', borda: 'border-blue-100',   badge: 'bg-blue-50 text-blue-700 border-blue-200'    },
-  { id: 'outro',     label: 'Outro',     emoji: '💬', borda: 'border-[#d2b99b]/30', badge: 'bg-gray-50 text-gray-600 border-gray-200'  },
+  { id: 'elogio',    label: 'Elogio',    borda: 'border-yellow-100', badge: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
+  { id: 'resultado', label: 'Resultado', borda: 'border-green-100',  badge: 'bg-green-50 text-green-700 border-green-200'  },
+  { id: 'indicacao', label: 'Indicacao', borda: 'border-blue-100',   badge: 'bg-blue-50 text-blue-700 border-blue-200'    },
+  { id: 'outro',     label: 'Outro',     borda: 'border-[#d2b99b]/30', badge: 'bg-gray-50 text-gray-600 border-gray-200'  },
 ];
 
 const FORM_VAZIO = { cliente_id: '', tipo: 'elogio', texto: '', data: new Date().toISOString().split('T')[0], autor: '' };
@@ -67,7 +67,7 @@ export default function Feedbacks() {
           {TIPOS.map(t => (
             <button key={t.id} onClick={() => setFiltroTipo(t.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${filtroTipo === t.id ? 'bg-[#486c96] text-white border-[#486c96]' : 'bg-white text-[#486c96] border-[#d2b99b]/40'}`}>
-              {t.emoji} {t.label}
+              {t.label}
             </button>
           ))}
         </div>
@@ -101,7 +101,7 @@ export default function Feedbacks() {
                 {TIPOS.map(t => (
                   <button key={t.id} type="button" onClick={() => setForm({ ...form, tipo: t.id })}
                     className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${form.tipo === t.id ? 'bg-[#486c96] text-white border-[#486c96]' : 'bg-white text-gray-600 border-[#d2b99b]/40'}`}>
-                    {t.emoji} {t.label}
+                    {t.label}
                   </button>
                 ))}
               </div>
@@ -142,7 +142,7 @@ export default function Feedbacks() {
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${tipo?.badge}`}>
-                      {tipo?.emoji} {tipo?.label}
+                      {tipo?.label}
                     </span>
                     {nome && (
                       <span className="px-2 py-0.5 rounded-full text-[10px] bg-[#486c96]/10 text-[#486c96] font-semibold">{nome}</span>

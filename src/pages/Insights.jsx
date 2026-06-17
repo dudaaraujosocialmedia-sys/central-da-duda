@@ -12,15 +12,15 @@ const CATEGORIAS = ['Estrategia', 'Conteudo', 'Cliente', 'Negocio', 'Pessoal', '
 const PROJETO_STATUS = ['Ideia', 'Planejando', 'Em andamento', 'Concluido', 'Pausado'];
 
 const TIPOS_PROJETO = [
-  { id: 'kit_data',       label: 'Kit de Data',        emoji: '🎉', desc: 'Natal, Ano Novo, Dia das Maes, Pascoa...' },
-  { id: 'kit_aniversario',label: 'Kit Aniversario',    emoji: '🎂', desc: 'Arte especial para o aniversario do cliente' },
-  { id: 'ebook',          label: 'Ebook',              emoji: '📖', desc: 'Material rico em PDF para gerar leads' },
-  { id: 'infoproduto',    label: 'Infoproduto',        emoji: '💡', desc: 'Produto digital: curso, template, planilha' },
-  { id: 'campanha',       label: 'Campanha',           emoji: '📣', desc: 'Campanha especial de promocao ou tema' },
-  { id: 'lancamento',     label: 'Lancamento',         emoji: '🚀', desc: 'Lancamento de servico, produto ou marca' },
-  { id: 'trafego',        label: 'Gestao de Trafego',  emoji: '🎯', desc: 'Anuncios pagos e impulsionamento' },
-  { id: 'identidade',     label: 'Identidade Visual',  emoji: '🎨', desc: 'Logo, cores, manual de marca' },
-  { id: 'outro',          label: 'Outro',              emoji: '📁', desc: 'Projeto personalizado' },
+  { id: 'kit_data',       label: 'Kit de Data',        desc: 'Natal, Ano Novo, Dia das Maes, Pascoa...' },
+  { id: 'kit_aniversario',label: 'Kit Aniversario',    desc: 'Arte especial para o aniversario do cliente' },
+  { id: 'ebook',          label: 'Ebook',              desc: 'Material rico em PDF para gerar leads' },
+  { id: 'infoproduto',    label: 'Infoproduto',        desc: 'Produto digital: curso, template, planilha' },
+  { id: 'campanha',       label: 'Campanha',           desc: 'Campanha especial de promocao ou tema' },
+  { id: 'lancamento',     label: 'Lancamento',         desc: 'Lancamento de servico, produto ou marca' },
+  { id: 'trafego',        label: 'Gestao de Trafego',  desc: 'Anuncios pagos e impulsionamento' },
+  { id: 'identidade',     label: 'Identidade Visual',  desc: 'Logo, cores, manual de marca' },
+  { id: 'outro',          label: 'Outro',              desc: 'Projeto personalizado' },
 ];
 
 // Tipos que nao tem "Entregaveis" no sentido digital (ex: kits fisicos)
@@ -520,7 +520,6 @@ export default function Insights() {
                     {TIPOS_PROJETO.map(t => (
                       <button key={t.id} type="button" onClick={() => setFormProj(f => ({ ...f, tipo: t.id }))}
                         className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-left transition-colors ${formProj.tipo === t.id ? 'bg-[#486c96] text-white border-[#486c96]' : 'bg-white text-gray-700 border-[#d2b99b]/40 hover:border-[#486c96]'}`}>
-                        <span className="text-base">{t.emoji}</span>
                         <div>
                           <div className="text-xs font-semibold leading-tight">{t.label}</div>
                           <div className={`text-[10px] leading-tight ${formProj.tipo === t.id ? 'text-white/70' : 'text-gray-400'}`}>{t.desc}</div>
@@ -598,7 +597,6 @@ export default function Insights() {
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap mb-1">
-                            {tipo && <span className="text-base">{tipo.emoji}</span>}
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusCor[p.status] || 'bg-gray-100 text-gray-600'}`}>{p.status}</span>
                             {tipo && <span className="text-[10px] text-gray-400 font-medium">{tipo.label}</span>}
                             {p.cliente_id && nomeCliente(p.cliente_id) && (
@@ -654,7 +652,6 @@ export default function Insights() {
                         {CAMPOS_TIPO[p.tipo] && (
                           <div className="px-5 py-4">
                             <div className="flex items-center gap-2 mb-3">
-                              <span className="text-base">{tipo?.emoji}</span>
                               <span className="text-xs font-bold text-[#486c96] uppercase tracking-wide">Detalhes do projeto</span>
                             </div>
                             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

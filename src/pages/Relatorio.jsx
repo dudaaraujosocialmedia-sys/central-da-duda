@@ -3,12 +3,12 @@ import { getOrDefault } from '../store';
 import { Copy, Check, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 
 const METRICAS = [
-  { key: 'seguidores',  label: 'Seguidores',          sufixo: '',  tipo: 'inteiro', emoji: '👥' },
-  { key: 'novos_seg',   label: 'Novos seguidores',     sufixo: '',  tipo: 'inteiro', emoji: '🚀' },
-  { key: 'alcance',     label: 'Alcance',              sufixo: '',  tipo: 'inteiro', emoji: '📡' },
-  { key: 'impressoes',  label: 'Impressoes',           sufixo: '',  tipo: 'inteiro', emoji: '👁️' },
-  { key: 'engajamento', label: 'Taxa de engajamento',  sufixo: '%', tipo: 'decimal',  emoji: '💬' },
-  { key: 'posts',       label: 'Posts publicados',     sufixo: '',  tipo: 'inteiro', emoji: '📸' },
+  { key: 'seguidores',  label: 'Seguidores',          sufixo: '',  tipo: 'inteiro' },
+  { key: 'novos_seg',   label: 'Novos seguidores',     sufixo: '',  tipo: 'inteiro' },
+  { key: 'alcance',     label: 'Alcance',              sufixo: '',  tipo: 'inteiro' },
+  { key: 'impressoes',  label: 'Impressoes',           sufixo: '',  tipo: 'inteiro' },
+  { key: 'engajamento', label: 'Taxa de engajamento',  sufixo: '%', tipo: 'decimal'  },
+  { key: 'posts',       label: 'Posts publicados',     sufixo: '',  tipo: 'inteiro' },
 ];
 
 const mesLabel = (key) => {
@@ -101,16 +101,16 @@ export default function Relatorio() {
         .map(l => {
           let delta = '';
           if (l.diff !== null) delta = ` (${seta(l.diff)} ${l.diff > 0 ? '+' : ''}${formatNum(l.diff, l.tipo, l.sufixo)})`;
-          return `${l.emoji} *${l.label}:* ${formatNum(l.cur, l.tipo, l.sufixo)}${delta}`;
+          return `*${l.label}:* ${formatNum(l.cur, l.tipo, l.sufixo)}${delta}`;
         });
       return [
-        `📊 *Resultados ${labelMes}*`,
+        `*Resultados ${labelMes}*`,
         perfil ? `${perfil}` : '',
         '',
         ...linhasResumo,
-        dadosMes.obs ? `\n📝 ${dadosMes.obs}` : '',
+        dadosMes.obs ? `\n${dadosMes.obs}` : '',
         '',
-        '_Qualquer duvida estou a disposicao_ 🤍',
+        '_Qualquer duvida estou a disposicao_',
       ].filter(l => l !== undefined).join('\n');
     }
 
@@ -148,18 +148,18 @@ export default function Relatorio() {
           const sinal = l.diff > 0 ? '+' : '';
           delta = ` _(${seta(l.diff)} ${sinal}${formatNum(l.diff, l.tipo, l.sufixo)}${l.pct !== null ? ` / ${sinal}${l.pct}%` : ''} vs ${labelAnt})_`;
         }
-        return `${l.emoji} *${l.label}:* ${formatNum(l.cur, l.tipo, l.sufixo)}${delta}`;
+        return `*${l.label}:* ${formatNum(l.cur, l.tipo, l.sufixo)}${delta}`;
       });
 
     return [
-      `Oi ${nome}! 🌸`,
+      `Oi ${nome}!`,
       '',
       `Aqui estao os resultados do seu perfil ${perfil} em *${labelMes}*:`,
       '',
       ...linhasWpp,
-      dadosMes.obs ? `\n✏️ _${dadosMes.obs}_` : '',
+      dadosMes.obs ? `\n_${dadosMes.obs}_` : '',
       '',
-      'Continuamos evoluindo juntos! Se tiver duvidas ou quiser conversar sobre a estrategia, me chama 🤍',
+      'Continuamos evoluindo juntos! Se tiver duvidas ou quiser conversar sobre a estrategia, me chama.',
     ].filter(l => l !== undefined).join('\n');
   };
 
@@ -221,9 +221,9 @@ export default function Relatorio() {
                 <label className="label">Estilo</label>
                 <div className="flex gap-2 flex-wrap">
                   {[
-                    { id: 'whatsapp', label: '📱 WhatsApp', desc: 'Informal e amigavel' },
-                    { id: 'resumido', label: '⚡ Resumido', desc: 'So os numeros' },
-                    { id: 'formal',   label: '📄 Formal',   desc: 'Tom profissional' },
+                    { id: 'whatsapp', label: 'WhatsApp', desc: 'Informal e amigavel' },
+                    { id: 'resumido', label: 'Resumido',  desc: 'So os numeros' },
+                    { id: 'formal',   label: 'Formal',    desc: 'Tom profissional' },
                   ].map(e => (
                     <button key={e.id} onClick={() => setEstilo(e.id)}
                       className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-colors text-left ${estilo === e.id ? 'bg-[#486c96] text-white border-[#486c96]' : 'bg-white text-[#486c96] border-[#d2b99b]/40 hover:border-[#486c96]'}`}>
@@ -243,7 +243,7 @@ export default function Relatorio() {
                   <div className="space-y-2">
                     {linhas.map(l => l.cur !== null && (
                       <div key={l.key} className="flex items-center justify-between text-sm">
-                        <span className="text-gray-500">{l.emoji} {l.label}</span>
+                        <span className="text-gray-500">{l.label}</span>
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-[#486c96]">{formatNum(l.cur, l.tipo, l.sufixo)}</span>
                           {l.diff !== null && (

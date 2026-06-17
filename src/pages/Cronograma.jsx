@@ -5,10 +5,10 @@ import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, 
 import { ptBR } from 'date-fns/locale';
 
 const TIPOS = [
-  { id: 'feed',      label: 'Feed',      emoji: '🖼️',  cor: '#486c96' },
-  { id: 'reels',     label: 'Reels',     emoji: '🎬',  cor: '#e879a0' },
-  { id: 'stories',   label: 'Stories',   emoji: '📱',  cor: '#f59e0b' },
-  { id: 'carrossel', label: 'Carrossel', emoji: '🎠',  cor: '#8b5cf6' },
+  { id: 'feed',      label: 'Feed',      cor: '#486c96' },
+  { id: 'reels',     label: 'Reels',     cor: '#e879a0' },
+  { id: 'stories',   label: 'Stories',   cor: '#f59e0b' },
+  { id: 'carrossel', label: 'Carrossel', cor: '#8b5cf6' },
 ];
 
 const STATUS = [
@@ -139,7 +139,6 @@ export default function Cronograma() {
                           style={{ background: (tipo?.cor || '#486c96') + '18', borderLeft: `3px solid ${tipo?.cor || '#486c96'}` }}
                           onClick={() => avancarStatus(post.id)}>
                           <div className="flex items-start gap-0.5 mb-0.5">
-                            <span className="text-[10px] flex-shrink-0">{tipo?.emoji}</span>
                             <span className="text-[10px] font-semibold text-gray-800 leading-tight line-clamp-2">{post.titulo}</span>
                           </div>
                           <div className="flex items-center justify-between gap-1">
@@ -169,7 +168,7 @@ export default function Cronograma() {
           {/* Legenda */}
           <div className="flex flex-wrap gap-4 text-xs text-gray-400">
             {TIPOS.map(t => (
-              <span key={t.id} className="flex items-center gap-1">{t.emoji} {t.label}</span>
+              <span key={t.id} className="flex items-center gap-1" style={{ color: t.cor }}>{t.label}</span>
             ))}
             <span className="text-gray-300">·</span>
             <span>Clique no post para avancar o status</span>
@@ -196,7 +195,7 @@ export default function Cronograma() {
                         <button key={t.id} type="button" onClick={() => setForm({ ...form, tipo: t.id })}
                           className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${form.tipo === t.id ? 'text-white border-transparent' : 'bg-white text-gray-600 border-[#d2b99b]/40'}`}
                           style={form.tipo === t.id ? { background: t.cor } : {}}>
-                          {t.emoji} {t.label}
+                          {t.label}
                         </button>
                       ))}
                     </div>

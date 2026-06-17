@@ -173,7 +173,7 @@ export default function CursosConcluidos() {
                           </span>
                         </div>
                         {c.instituicao && <p className="text-xs text-gray-500 mb-1">{c.instituicao}</p>}
-                        {c.modulo_atual && <p className="text-xs text-amber-600 font-semibold mb-1">📍 {c.modulo_atual}</p>}
+                        {c.modulo_atual && <p className="text-xs text-amber-600 font-semibold mb-1">{c.modulo_atual}</p>}
                         <div className="flex items-center gap-2 flex-wrap mb-2">
                           {c.categoria && <span className="px-2 py-0.5 rounded-full text-[10px] bg-[#f9f1e7] text-[#486c96] font-semibold">{c.categoria}</span>}
                           {c.data && <span className="text-[10px] text-gray-400">{c.data}</span>}

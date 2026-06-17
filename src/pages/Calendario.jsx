@@ -319,7 +319,6 @@ export default function Calendario() {
           <div className="bg-white rounded-2xl shadow-sm border border-[#d2b99b]/30 overflow-hidden">
             <button onClick={() => setShowPeriodos(!showPeriodos)} className="w-full flex items-center justify-between px-5 py-4 hover:bg-[#f9f1e7]">
               <div className="flex items-center gap-2">
-                <span className="text-sm">🎨</span>
                 <span className="font-semibold text-[#486c96] text-sm">Periodos coloridos</span>
               </div>
               <ChevronRight size={14} className={`text-gray-400 transition-transform ${showPeriodos ? 'rotate-90' : ''}`} />
