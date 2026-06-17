@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { getOrDefault, set } from '../store';
-import { Lightbulb, Plus, Trash2, Check, X, Edit2, FolderKanban } from 'lucide-react';
+import { Lightbulb, Plus, Trash2, Check, X, Edit2, FolderKanban, ChevronDown, ChevronUp, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -59,8 +59,10 @@ export default function Insights() {
   const [projetos, setProjetos] = useState(() => getOrDefault('projetos', []));
   const [showFormProj, setShowFormProj] = useState(false);
   const [editProjId, setEditProjId] = useState(null);
-  const [formProj, setFormProj] = useState({ titulo: '', descricao: '', status: 'Ideia', prazo: '', cliente_id: '' });
+  const [formProj, setFormProj] = useState({ titulo: '', descricao: '', status: 'Ideia', prazo: '', cliente_id: '', notas: '' });
   const [statusFiltro, setStatusFiltro] = useState('todos');
+  const [notasAbertas, setNotasAbertas] = useState({});
+  const [notasEditando, setNotasEditando] = useState({});
 
   const salvarProjetos = (lista) => { setProjetos(lista); set('projetos', lista); };
 
@@ -73,9 +75,15 @@ export default function Insights() {
     } else {
       salvarProjetos([...projetos, item]);
     }
-    setFormProj({ titulo: '', descricao: '', status: 'Ideia', prazo: '', cliente_id: '' });
+    setFormProj({ titulo: '', descricao: '', status: 'Ideia', prazo: '', cliente_id: '', notas: '' });
     setShowFormProj(false);
   };
+
+  const salvarNotas = (projId, texto) => {
+    salvarProjetos(projetos.map(p => p.id === projId ? { ...p, notas: texto } : p));
+  };
+
+  const toggleNotas = (id) => setNotasAbertas(n => ({ ...n, [id]: !n[id] }));
 
   const statusCor = { 'Ideia': 'bg-gray-100 text-gray-600', 'Planejando': 'bg-blue-50 text-blue-700', 'Em andamento': 'bg-yellow-50 text-yellow-700', 'Concluido': 'bg-green-50 text-green-700', 'Pausado': 'bg-red-50 text-red-500' };
 
@@ -230,8 +238,12 @@ export default function Insights() {
                   </select>
                 </div>
                 <div>
-                  <label className="label">Descricao / notas</label>
-                  <textarea className="input" rows={3} value={formProj.descricao} onChange={e => setFormProj({...formProj, descricao: e.target.value})} placeholder="Detalhes, ideias, referencias para o projeto..." />
+                  <label className="label">Descricao resumida</label>
+                  <textarea className="input" rows={2} value={formProj.descricao} onChange={e => setFormProj({...formProj, descricao: e.target.value})} placeholder="Uma frase descrevendo o projeto..." />
+                </div>
+                <div>
+                  <label className="label">Notas completas do projeto</label>
+                  <textarea className="input" rows={6} value={formProj.notas} onChange={e => setFormProj({...formProj, notas: e.target.value})} placeholder={'Anote tudo aqui:\n— Orcamento\n— Produtos / entregaveis\n— Referências visuais\n— Observacoes do cliente\n— Prazos internos\n— Checklist de tarefas...'} />
                 </div>
               </div>
               <div className="flex gap-2 mt-4">
@@ -263,19 +275,40 @@ export default function Insights() {
                       <h3 className="font-bold text-[#486c96]">{p.titulo}</h3>
                     </div>
                     <div className="flex gap-1 flex-shrink-0">
-                      <button onClick={() => { setFormProj({ titulo: p.titulo, descricao: p.descricao || '', status: p.status, prazo: p.prazo || '', cliente_id: p.cliente_id || '' }); setEditProjId(p.id); setShowFormProj(true); }} className="text-[#486c96]"><Edit2 size={13} /></button>
+                      <button onClick={() => { setFormProj({ titulo: p.titulo, descricao: p.descricao || '', status: p.status, prazo: p.prazo || '', cliente_id: p.cliente_id || '', notas: p.notas || '' }); setEditProjId(p.id); setShowFormProj(true); }} className="text-[#486c96]"><Edit2 size={13} /></button>
                       <button onClick={() => salvarProjetos(projetos.filter(x => x.id !== p.id))} className="text-gray-300 hover:text-red-400"><Trash2 size={13} /></button>
                     </div>
                   </div>
-                  {p.descricao && <p className="text-sm text-gray-600 leading-relaxed">{p.descricao}</p>}
-                  <div className="flex gap-2 mt-3">
-                    {PROJETO_STATUS.filter(s => s !== p.status).map(s => (
-                      <button key={s} onClick={() => salvarProjetos(projetos.map(x => x.id === p.id ? {...x, status: s} : x))}
-                        className="text-[10px] text-gray-400 hover:text-[#486c96] px-2 py-0.5 rounded-lg border border-gray-200 hover:border-[#486c96] transition-colors">
-                        {s}
-                      </button>
-                    ))}
+                  {p.descricao && <p className="text-sm text-gray-600 leading-relaxed mb-2">{p.descricao}</p>}
+                  <div className="flex items-center justify-between mt-2">
+                    <div className="flex gap-2 flex-wrap">
+                      {PROJETO_STATUS.filter(s => s !== p.status).map(s => (
+                        <button key={s} onClick={() => salvarProjetos(projetos.map(x => x.id === p.id ? {...x, status: s} : x))}
+                          className="text-[10px] text-gray-400 hover:text-[#486c96] px-2 py-0.5 rounded-lg border border-gray-200 hover:border-[#486c96] transition-colors">
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                    <button onClick={() => toggleNotas(p.id)}
+                      className="flex items-center gap-1 text-xs text-[#486c96] font-semibold px-2 py-1 rounded-lg hover:bg-[#f9f1e7] transition-colors flex-shrink-0">
+                      <FileText size={12} />
+                      {notasAbertas[p.id] ? 'Fechar notas' : (p.notas ? 'Ver notas' : 'Adicionar notas')}
+                      {notasAbertas[p.id] ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                    </button>
                   </div>
+                  {notasAbertas[p.id] && (
+                    <div className="mt-3 pt-3 border-t border-[#d2b99b]/20">
+                      <textarea
+                        className="w-full text-sm text-gray-700 leading-relaxed border border-[#d2b99b]/30 rounded-xl p-3 resize-none focus:outline-none focus:border-[#486c96] bg-[#f9f1e7]/40 min-h-[120px]"
+                        placeholder={'Anote tudo aqui: orcamento, produtos, entregaveis, referencias visuais, observacoes do cliente, prazos internos, checklist...'}
+                        value={notasEditando[p.id] !== undefined ? notasEditando[p.id] : (p.notas || '')}
+                        onChange={e => setNotasEditando(n => ({ ...n, [p.id]: e.target.value }))}
+                        onBlur={e => { salvarNotas(p.id, e.target.value); setNotasEditando(n => { const x = {...n}; delete x[p.id]; return x; }); }}
+                        rows={6}
+                      />
+                      <p className="text-[10px] text-gray-400 mt-1">Salva automaticamente ao clicar fora ✓</p>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

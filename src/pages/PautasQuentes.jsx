@@ -128,7 +128,7 @@ export default function PautasQuentes() {
 
   const gerarIdeiasCliente = (clienteId, area) => {
     const base = getIdeias(area);
-    const shuffled = [...base].sort(() => Math.random() - 0.5).slice(0, 10);
+    const shuffled = [...base].sort(() => Math.random() - 0.5).slice(0, 10).map(texto => ({ texto, boa: false }));
     const novo = { ...bancoIdeias, [clienteId]: { semana: semanaAtual, ideias: shuffled } };
     setBancoIdeias(novo);
     set('banco_ideias', novo);
@@ -139,6 +139,28 @@ export default function PautasQuentes() {
       setCopiadoIdx(idx);
       setTimeout(() => setCopiadoIdx(null), 2000);
     });
+  };
+
+  const marcarBoa = (clienteId, i) => {
+    const dados = bancoIdeias[clienteId];
+    if (!dados) return;
+    const novasIdeias = dados.ideias.map((ideia, idx) => {
+      const texto = typeof ideia === 'string' ? ideia : ideia.texto;
+      const boa = typeof ideia === 'string' ? false : ideia.boa;
+      return idx === i ? { texto, boa: !boa } : { texto, boa };
+    });
+    const novo = { ...bancoIdeias, [clienteId]: { ...dados, ideias: novasIdeias } };
+    setBancoIdeias(novo);
+    set('banco_ideias', novo);
+  };
+
+  const removerIdeia = (clienteId, i) => {
+    const dados = bancoIdeias[clienteId];
+    if (!dados) return;
+    const novasIdeias = dados.ideias.filter((_, idx) => idx !== i);
+    const novo = { ...bancoIdeias, [clienteId]: { ...dados, ideias: novasIdeias } };
+    setBancoIdeias(novo);
+    set('banco_ideias', novo);
   };
 
   const mesAtual = new Date().getMonth() + 1;
@@ -285,16 +307,33 @@ export default function PautasQuentes() {
                     </div>
                     {dados ? (
                       <div className="divide-y divide-[#d2b99b]/10">
-                        {dados.ideias.map((ideia, i) => (
-                          <div key={i} className="flex items-start gap-3 px-5 py-3 hover:bg-[#f9f1e7]/50">
-                            <span className="text-[#d2b99b] font-bold text-xs w-5 flex-shrink-0 mt-0.5">{i + 1}</span>
-                            <p className="text-sm text-gray-700 flex-1 leading-relaxed">{ideia}</p>
-                            <button onClick={() => copiarIdeia(ideia, `${c.id}-${i}`)}
-                              className={`flex-shrink-0 p-1.5 rounded-lg transition-colors ${copiadoIdx === `${c.id}-${i}` ? 'text-green-500' : 'text-gray-300 hover:text-[#486c96]'}`}>
-                              {copiadoIdx === `${c.id}-${i}` ? <CheckIcon size={14} /> : <Copy size={14} />}
-                            </button>
-                          </div>
-                        ))}
+                        {dados.ideias.map((ideia, i) => {
+                          const texto = typeof ideia === 'string' ? ideia : ideia.texto;
+                          const boa = typeof ideia === 'object' && ideia.boa;
+                          const chave = `${c.id}-${i}`;
+                          return (
+                            <div key={i} className={`flex items-start gap-3 px-5 py-3 transition-colors ${boa ? 'bg-green-50' : 'hover:bg-[#f9f1e7]/50'}`}>
+                              <span className="text-[#d2b99b] font-bold text-xs w-5 flex-shrink-0 mt-0.5">{i + 1}</span>
+                              <p className={`text-sm flex-1 leading-relaxed ${boa ? 'text-green-800 font-medium' : 'text-gray-700'}`}>{texto}</p>
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                <button onClick={() => marcarBoa(c.id, i)}
+                                  title={boa ? 'Desmarcar' : 'Marcar como boa ideia'}
+                                  className={`p-1.5 rounded-lg transition-colors ${boa ? 'text-green-500 bg-green-100' : 'text-gray-300 hover:text-green-500'}`}>
+                                  <CheckIcon size={14} />
+                                </button>
+                                <button onClick={() => copiarIdeia(texto, chave)}
+                                  className={`p-1.5 rounded-lg transition-colors ${copiadoIdx === chave ? 'text-[#486c96]' : 'text-gray-300 hover:text-[#486c96]'}`}>
+                                  <Copy size={14} />
+                                </button>
+                                <button onClick={() => removerIdeia(c.id, i)}
+                                  title="Remover ideia"
+                                  className="p-1.5 rounded-lg text-gray-200 hover:text-red-400 transition-colors">
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     ) : (
                       <div className="px-5 py-6 text-center text-gray-400 text-sm">
