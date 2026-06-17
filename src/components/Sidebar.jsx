@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Flame, DollarSign, Target, TrendingUp,
   Calendar, MessageSquare, CheckSquare, GraduationCap,
-  Lightbulb, Lock, BookOpen, Settings, X, Building2, BarChart2, CalendarDays, Heart
+  Lightbulb, Lock, BookOpen, Settings, X, Building2, BarChart2, CalendarDays, Heart, FileText
 } from 'lucide-react';
 
 const navItems = [
@@ -17,6 +17,7 @@ const navItems = [
   { id: 'cursos',      label: 'Cursos & Estudos',   icon: GraduationCap },
   { id: 'insights',    label: 'Insights',           icon: Lightbulb },
   { id: 'resultados',  label: 'Resultados',         icon: BarChart2 },
+  { id: 'relatorio',   label: 'Relatorio',          icon: FileText },
   { id: 'feedbacks',   label: 'Feedbacks',          icon: Heart },
   { id: 'senhas',      label: 'Cofre de Senhas',    icon: Lock },
   { id: 'processos',   label: 'Processos',          icon: BookOpen },
