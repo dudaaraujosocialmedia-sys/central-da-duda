@@ -332,6 +332,26 @@ export default function Insights() {
     setEditandoCampo(e => { const x = { ...e }; delete x[`${projId}_dt_${key}`]; return x; });
   };
 
+  const addItemExtra = (projId) => {
+    const nome = (novaEntrada[`ix_nome_${projId}`] || '').trim();
+    if (!nome) return;
+    const valor = (novaEntrada[`ix_val_${projId}`] || '').trim();
+    salvarProjetos(projetos.map(p => p.id === projId
+      ? { ...p, detalhes_tipo: { ...(p.detalhes_tipo || {}), itens_extra: [...((p.detalhes_tipo || {}).itens_extra || []), { id: Date.now(), nome, valor }] } }
+      : p));
+    setNovaEntrada(n => ({ ...n, [`ix_nome_${projId}`]: '', [`ix_val_${projId}`]: '' }));
+  };
+
+  const removerItemExtra = (projId, itemId) =>
+    salvarProjetos(projetos.map(p => p.id === projId
+      ? { ...p, detalhes_tipo: { ...(p.detalhes_tipo || {}), itens_extra: ((p.detalhes_tipo || {}).itens_extra || []).filter(i => i.id !== itemId) } }
+      : p));
+
+  const atualizarItemExtra = (projId, itemId, campo, val) =>
+    salvarProjetos(projetos.map(p => p.id === projId
+      ? { ...p, detalhes_tipo: { ...(p.detalhes_tipo || {}), itens_extra: ((p.detalhes_tipo || {}).itens_extra || []).map(i => i.id === itemId ? { ...i, [campo]: val } : i) } }
+      : p));
+
   const addLink = (projId) => {
     const url = (novaEntrada[`l_${projId}`] || '').trim();
     if (!url) return;
@@ -644,7 +664,48 @@ export default function Insights() {
                                 </div>
                               ))}
                             </div>
-                            <p className="text-[10px] text-gray-400 mt-2">Salva automaticamente ao clicar fora ✓</p>
+                            {/* Outros itens / valores extras */}
+                            <div className="sm:col-span-2 mt-1">
+                              <label className="label">Outros itens / valores</label>
+                              <div className="space-y-1.5 mb-2">
+                                {((p.detalhes_tipo || {}).itens_extra || []).map(item => (
+                                  <div key={item.id} className="flex items-center gap-2">
+                                    <input
+                                      className="input flex-1 text-sm py-1.5"
+                                      defaultValue={item.nome}
+                                      placeholder="Item"
+                                      onBlur={e => atualizarItemExtra(p.id, item.id, 'nome', e.target.value)}
+                                    />
+                                    <input
+                                      className="input w-32 text-sm py-1.5"
+                                      defaultValue={item.valor}
+                                      placeholder="R$ 0,00"
+                                      onBlur={e => atualizarItemExtra(p.id, item.id, 'valor', e.target.value)}
+                                    />
+                                    <button onClick={() => removerItemExtra(p.id, item.id)} className="text-gray-300 hover:text-red-400 flex-shrink-0"><X size={14} /></button>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="flex gap-2">
+                                <input
+                                  className="input flex-1 text-sm py-1.5"
+                                  placeholder="Ex: Bloco de notas, Caneca, Frete..."
+                                  value={novaEntrada[`ix_nome_${p.id}`] || ''}
+                                  onChange={e => setNovaEntrada(n => ({ ...n, [`ix_nome_${p.id}`]: e.target.value }))}
+                                  onKeyDown={e => e.key === 'Enter' && addItemExtra(p.id)}
+                                />
+                                <input
+                                  className="input w-32 text-sm py-1.5"
+                                  placeholder="R$ valor"
+                                  value={novaEntrada[`ix_val_${p.id}`] || ''}
+                                  onChange={e => setNovaEntrada(n => ({ ...n, [`ix_val_${p.id}`]: e.target.value }))}
+                                  onKeyDown={e => e.key === 'Enter' && addItemExtra(p.id)}
+                                />
+                                <button onClick={() => addItemExtra(p.id)} className="btn-primary py-1.5 px-3"><Plus size={14} /></button>
+                              </div>
+                            </div>
+
+                            <p className="text-[10px] text-gray-400 mt-2 sm:col-span-2">Salva automaticamente ao clicar fora ✓</p>
                           </div>
                         )}
 
