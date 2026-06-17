@@ -41,6 +41,7 @@ const KEYS = {
   diario_empresa: 'da_diario_empresa',
   projetos: 'da_projetos',
   categorias_calendario: 'da_categorias_calendario',
+  despesas_qtd_mes: 'da_despesas_qtd_mes',
 };
 
 export const ALL_BACKUP_KEYS = Object.values(KEYS);

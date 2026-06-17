@@ -9,7 +9,15 @@ const MARCOS_CATEGORIAS = [
   'Meta financeira', 'Equipe', 'Produto/Servico', 'Reconhecimento', 'Outro',
 ];
 
+const CATEGORIAS_DESP = ['Assinatura / Aplicativo', 'Servico Fixo', 'Freelancer / Por demanda', 'Equipamento', 'Outro'];
 const FREQUENCIAS_DESP = ['Mensal', 'Anual', 'Unica vez'];
+
+const mesAtualKey = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+};
+
+const FORM_VAZIO_DESP = { nome: '', categoria: 'Assinatura / Aplicativo', frequencia: 'Mensal', valor_unit: '', unidade: 'arte', vencimento: '' };
 
 export default function Empresa() {
   const [aba, setAba] = useState('marca');
@@ -23,30 +31,50 @@ export default function Empresa() {
 
   // --- DESPESAS ---
   const [despesas, setDespesas] = useState(() => getOrDefault('despesas', []));
-  const [formDesp, setFormDesp] = useState({ nome: '', valor: '', frequencia: 'Mensal', vencimento: '', categoria: '' });
+  const [formDesp, setFormDesp] = useState(FORM_VAZIO_DESP);
   const [showFormDesp, setShowFormDesp] = useState(false);
   const [editDespId, setEditDespId] = useState(null);
+  // Quantidade do mes atual para freelancers: { [despId]: { [mesKey]: qtd } }
+  const [qtdMes, setQtdMes] = useState(() => getOrDefault('despesas_qtd_mes', {}));
 
   const salvarDespesas = (l) => { setDespesas(l); set('despesas', l); };
+  const salvarQtdMes = (q) => { setQtdMes(q); set('despesas_qtd_mes', q); };
 
   const submitDesp = () => {
-    if (!formDesp.nome || !formDesp.valor) return;
-    const item = { ...formDesp, valor: parseFloat(formDesp.valor), id: editDespId || Date.now() };
+    const ehDemanda = formDesp.categoria === 'Freelancer / Por demanda';
+    if (!formDesp.nome || !formDesp.valor_unit) return;
+    const item = {
+      ...formDesp,
+      valor_unit: parseFloat(formDesp.valor_unit),
+      id: editDespId || Date.now(),
+    };
     if (editDespId) {
       salvarDespesas(despesas.map(d => d.id === editDespId ? item : d));
       setEditDespId(null);
     } else {
       salvarDespesas([...despesas, item]);
     }
-    setFormDesp({ nome: '', valor: '', frequencia: 'Mensal', vencimento: '', categoria: '' });
+    setFormDesp(FORM_VAZIO_DESP);
     setShowFormDesp(false);
   };
 
-  const totalMensal = despesas.reduce((s, d) => {
-    if (d.frequencia === 'Mensal') return s + (d.valor || 0);
-    if (d.frequencia === 'Anual') return s + (d.valor || 0) / 12;
-    return s;
-  }, 0);
+  const atualizarQtd = (despId, mes, valor) => {
+    const novo = { ...qtdMes, [despId]: { ...(qtdMes[despId] || {}), [mes]: Number(valor) || 0 } };
+    salvarQtdMes(novo);
+  };
+
+  const custoMensal = (d) => {
+    if (d.categoria === 'Freelancer / Por demanda') {
+      const mes = mesAtualKey();
+      const qtd = (qtdMes[d.id] || {})[mes] || 0;
+      return (d.valor_unit || 0) * qtd;
+    }
+    if (d.frequencia === 'Mensal') return d.valor_unit || 0;
+    if (d.frequencia === 'Anual') return (d.valor_unit || 0) / 12;
+    return 0;
+  };
+
+  const totalMensal = despesas.reduce((s, d) => s + custoMensal(d), 0);
 
   // --- DIARIO ---
   const [marcos, setMarcos] = useState(() => getOrDefault('diario_empresa', []));
@@ -163,7 +191,7 @@ export default function Empresa() {
           </div>
 
           <div className="flex justify-end mb-4">
-            <button className="btn-primary flex items-center gap-2" onClick={() => { setShowFormDesp(true); setEditDespId(null); setFormDesp({ nome: '', valor: '', frequencia: 'Mensal', vencimento: '', categoria: '' }); }}>
+            <button className="btn-primary flex items-center gap-2" onClick={() => { setShowFormDesp(true); setEditDespId(null); setFormDesp(FORM_VAZIO_DESP); }}>
               <Plus size={16} /> Nova despesa
             </button>
           </div>
@@ -173,26 +201,53 @@ export default function Empresa() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
                   <label className="label">Nome da despesa</label>
-                  <input className="input" value={formDesp.nome} onChange={e => setFormDesp({...formDesp, nome: e.target.value})} placeholder="Ex: Canva Pro, CapCut, Designer..." />
+                  <input className="input" value={formDesp.nome} onChange={e => setFormDesp({...formDesp, nome: e.target.value})} placeholder="Ex: Canva Pro, Designer Freelancer, CapCut..." />
                 </div>
-                <div>
-                  <label className="label">Valor (R$)</label>
-                  <input className="input" type="number" value={formDesp.valor} onChange={e => setFormDesp({...formDesp, valor: e.target.value})} placeholder="0,00" />
+                <div className="col-span-2">
+                  <label className="label">Categoria</label>
+                  <div className="flex flex-wrap gap-2">
+                    {CATEGORIAS_DESP.map(c => (
+                      <button key={c} type="button"
+                        onClick={() => setFormDesp({...formDesp, categoria: c})}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${formDesp.categoria === c ? 'bg-[#486c96] text-white border-[#486c96]' : 'bg-white text-gray-500 border-[#d2b99b]/40'}`}>
+                        {c}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div>
-                  <label className="label">Frequencia</label>
-                  <select className="input" value={formDesp.frequencia} onChange={e => setFormDesp({...formDesp, frequencia: e.target.value})}>
-                    {FREQUENCIAS_DESP.map(f => <option key={f}>{f}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="label">Dia de vencimento (opcional)</label>
-                  <input className="input" type="number" min="1" max="31" value={formDesp.vencimento} onChange={e => setFormDesp({...formDesp, vencimento: e.target.value})} placeholder="Ex: 10" />
-                </div>
-                <div>
-                  <label className="label">Categoria (opcional)</label>
-                  <input className="input" value={formDesp.categoria} onChange={e => setFormDesp({...formDesp, categoria: e.target.value})} placeholder="Ex: Software, Servico, Freelancer" />
-                </div>
+
+                {formDesp.categoria === 'Freelancer / Por demanda' ? (
+                  <>
+                    <div>
+                      <label className="label">Valor por unidade (R$)</label>
+                      <input className="input" type="number" value={formDesp.valor_unit} onChange={e => setFormDesp({...formDesp, valor_unit: e.target.value})} placeholder="Ex: 25,00" />
+                    </div>
+                    <div>
+                      <label className="label">Unidade</label>
+                      <input className="input" value={formDesp.unidade} onChange={e => setFormDesp({...formDesp, unidade: e.target.value})} placeholder="Ex: arte, post, video, hora" />
+                    </div>
+                    <div className="col-span-2 bg-[#f9f1e7] rounded-xl p-3 text-xs text-[#486c96]">
+                      O custo vai variar por mes conforme a quantidade que voce pedir. Voce informa a quantidade direto no cartao da despesa todo mes.
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <label className="label">Valor (R$)</label>
+                      <input className="input" type="number" value={formDesp.valor_unit} onChange={e => setFormDesp({...formDesp, valor_unit: e.target.value})} placeholder="0,00" />
+                    </div>
+                    <div>
+                      <label className="label">Frequencia</label>
+                      <select className="input" value={formDesp.frequencia} onChange={e => setFormDesp({...formDesp, frequencia: e.target.value})}>
+                        {FREQUENCIAS_DESP.map(f => <option key={f}>{f}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label">Dia de vencimento (opcional)</label>
+                      <input className="input" type="number" min="1" max="31" value={formDesp.vencimento} onChange={e => setFormDesp({...formDesp, vencimento: e.target.value})} placeholder="Ex: 10" />
+                    </div>
+                  </>
+                )}
               </div>
               <div className="flex gap-2 mt-4">
                 <button className="btn-primary" onClick={submitDesp}><Check size={14} className="inline mr-1" /> Salvar</button>
@@ -206,22 +261,51 @@ export default function Empresa() {
               <div className="bg-white rounded-2xl p-8 text-center border border-[#d2b99b]/30 shadow-sm text-gray-400 text-sm">
                 Cadastre suas despesas recorrentes: Canva, CapCut, designer, celular, internet...
               </div>
-            ) : despesas.map(d => (
-              <div key={d.id} className="bg-white rounded-2xl border border-[#d2b99b]/30 shadow-sm px-4 py-3 flex items-center gap-4">
-                <div className="flex-1">
-                  <div className="font-semibold text-gray-800 text-sm">{d.nome}</div>
-                  {d.categoria && <div className="text-xs text-gray-400">{d.categoria}</div>}
+            ) : despesas.map(d => {
+              const ehDemanda = d.categoria === 'Freelancer / Por demanda';
+              const mes = mesAtualKey();
+              const qtdAtual = ehDemanda ? ((qtdMes[d.id] || {})[mes] || '') : null;
+              const custoHoje = custoMensal(d);
+              return (
+                <div key={d.id} className="bg-white rounded-2xl border border-[#d2b99b]/30 shadow-sm px-4 py-3">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-800 text-sm">{d.nome}</div>
+                      <div className="text-xs text-gray-400">{d.categoria}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-[#486c96]">R$ {custoHoje.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                      <div className="text-xs text-gray-400">
+                        {ehDemanda
+                          ? `R$ ${(d.valor_unit||0).toLocaleString('pt-BR',{minimumFractionDigits:2})} / ${d.unidade || 'unidade'}`
+                          : `${d.frequencia}${d.vencimento ? ` · dia ${d.vencimento}` : ''}`}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => { setFormDesp({ nome: d.nome, categoria: d.categoria, frequencia: d.frequencia || 'Mensal', valor_unit: String(d.valor_unit || ''), unidade: d.unidade || 'arte', vencimento: d.vencimento || '' }); setEditDespId(d.id); setShowFormDesp(true); }} className="text-[#486c96]"><Edit2 size={14} /></button>
+                      <button onClick={() => salvarDespesas(despesas.filter(x => x.id !== d.id))} className="text-gray-300 hover:text-red-400"><Trash2 size={14} /></button>
+                    </div>
+                  </div>
+                  {ehDemanda && (
+                    <div className="mt-3 pt-3 border-t border-[#d2b99b]/20 flex items-center gap-3">
+                      <span className="text-xs text-gray-500 flex-1">Quantidade este mes:</span>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => atualizarQtd(d.id, mes, Math.max(0, (Number(qtdAtual)||0) - 1))} className="w-7 h-7 rounded-lg bg-[#f9f1e7] text-[#486c96] font-bold text-base flex items-center justify-center">−</button>
+                        <input
+                          type="number" min="0"
+                          value={qtdAtual}
+                          onChange={e => atualizarQtd(d.id, mes, e.target.value)}
+                          className="w-14 text-center border border-[#d2b99b]/40 rounded-lg py-1 text-sm font-semibold text-[#486c96] focus:outline-none"
+                          placeholder="0"
+                        />
+                        <button onClick={() => atualizarQtd(d.id, mes, (Number(qtdAtual)||0) + 1)} className="w-7 h-7 rounded-lg bg-[#f9f1e7] text-[#486c96] font-bold text-base flex items-center justify-center">+</button>
+                        <span className="text-xs text-gray-400">{d.unidade || 'unidade'}{(Number(qtdAtual)||0) !== 1 ? 's' : ''}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="text-right">
-                  <div className="font-bold text-[#486c96]">R$ {(d.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-                  <div className="text-xs text-gray-400">{d.frequencia}{d.vencimento ? ` · dia ${d.vencimento}` : ''}</div>
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={() => { setFormDesp({ nome: d.nome, valor: String(d.valor), frequencia: d.frequencia, vencimento: d.vencimento || '', categoria: d.categoria || '' }); setEditDespId(d.id); setShowFormDesp(true); }} className="text-[#486c96]"><Edit2 size={14} /></button>
-                  <button onClick={() => salvarDespesas(despesas.filter(x => x.id !== d.id))} className="text-gray-300 hover:text-red-400"><Trash2 size={14} /></button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
