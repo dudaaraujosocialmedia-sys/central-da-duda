@@ -105,26 +105,6 @@ export default function Ajustes() {
         </div>
       </div>
 
-      {historico.length > 0 && (
-        <div>
-          <h3 className="section-title">Historico de pedidos</h3>
-          <div className="space-y-3">
-            {historico.map(h => (
-              <div key={h.id} className="bg-white rounded-xl p-4 border border-[#d2b99b]/30 shadow-sm">
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-sm text-gray-700 flex-1 leading-relaxed">{h.texto}</p>
-                  <button onClick={() => remover(h.id)} className="text-gray-300 hover:text-red-400 flex-shrink-0 mt-0.5"><Trash2 size={13} /></button>
-                </div>
-                <div className="flex items-center gap-1 mt-2 text-[11px] text-gray-400">
-                  <Clock size={10} />
-                  <span>{formatarData(h.data)}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Backup */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#d2b99b]/30 mb-6">
         <h3 className="font-bold text-[#486c96] mb-1">Backup dos dados</h3>
@@ -150,11 +130,29 @@ export default function Ajustes() {
         )}
       </div>
 
-      {historico.length === 0 && (
-        <div className="bg-white rounded-2xl p-10 text-center border border-[#d2b99b]/30 shadow-sm">
-          <p className="text-gray-400 text-sm">Nenhum pedido enviado ainda</p>
-        </div>
-      )}
+      <div className="mb-4">
+        <h3 className="section-title">Historico de pedidos</h3>
+        {historico.length === 0 ? (
+          <div className="bg-white rounded-2xl p-8 text-center border border-[#d2b99b]/30 shadow-sm">
+            <p className="text-gray-400 text-sm">Nenhum pedido enviado ainda</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {historico.map(h => (
+              <div key={h.id} className="bg-white rounded-xl p-4 border border-[#d2b99b]/30 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-sm text-gray-700 flex-1 leading-relaxed">{h.texto}</p>
+                  <button onClick={() => remover(h.id)} className="text-gray-300 hover:text-red-400 flex-shrink-0 mt-0.5"><Trash2 size={13} /></button>
+                </div>
+                <div className="flex items-center gap-1 mt-2 text-[11px] text-gray-400">
+                  <Clock size={10} />
+                  <span>{formatarData(h.data)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

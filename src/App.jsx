@@ -16,6 +16,7 @@ import CofreSenhas from './pages/CofreSenhas';
 import Processos from './pages/Processos';
 import Ajustes from './pages/Ajustes';
 import ClienteDetalhe from './pages/ClienteDetalhe';
+import Empresa from './pages/Empresa';
 
 const PAGES = {
   dashboard: Dashboard,
@@ -30,6 +31,7 @@ const PAGES = {
   insights: Insights,
   senhas: CofreSenhas,
   processos: Processos,
+  empresa: Empresa,
   ajustes: Ajustes,
 };
 
@@ -37,7 +39,8 @@ const PAGE_LABELS = {
   dashboard: 'Inicio', pautas: 'Pautas Quentes', financeiro: 'Financeiro',
   metas: 'Metas', investimentos: 'Investimentos', calendario: 'Calendario',
   mensagens: 'Mensagens Prontas', checklist: 'Checklist', cursos: 'Cursos & Estudos',
-  insights: 'Insights', senhas: 'Cofre de Senhas', processos: 'Processos', ajustes: 'Ajustes',
+  insights: 'Insights', senhas: 'Cofre de Senhas', processos: 'Processos',
+  empresa: 'Minha Empresa', ajustes: 'Ajustes',
 };
 
 export default function App() {

@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Flame, DollarSign, Target, TrendingUp,
   Calendar, MessageSquare, CheckSquare, GraduationCap,
-  Lightbulb, Lock, BookOpen, ChevronLeft, Menu, Settings, X
+  Lightbulb, Lock, BookOpen, ChevronLeft, Menu, Settings, X, Building2
 } from 'lucide-react';
 
 const navItems = [
@@ -17,6 +17,7 @@ const navItems = [
   { id: 'insights', label: 'Insights', icon: Lightbulb },
   { id: 'senhas', label: 'Cofre de Senhas', icon: Lock },
   { id: 'processos', label: 'Processos', icon: BookOpen },
+  { id: 'empresa', label: 'Minha Empresa', icon: Building2 },
   { id: 'ajustes', label: 'Ajustes', icon: Settings },
 ];
 

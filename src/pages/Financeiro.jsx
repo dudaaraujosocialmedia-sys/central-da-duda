@@ -6,6 +6,7 @@ const FORM_VAZIO = {
   tipo: 'pessoa', nome: '', cpfCnpj: '', valor: '', valor_onboarding: '', dia_pagamento: '',
   status: 'ativo', area: '', perfil: '', servico: '', observacoes: '',
   data_entrada: '', data_saida: '', contrato: '', drive: '', senha: '', socios: [],
+  sem_valor: false,
 };
 
 export default function Financeiro({ onVerCliente }) {
@@ -37,7 +38,7 @@ export default function Financeiro({ onVerCliente }) {
   const removeSocio = (i) => setForm(f => ({ ...f, socios: f.socios.filter((_, idx) => idx !== i) }));
 
   const adicionarCliente = () => {
-    if (!form.nome || !form.valor) return;
+    if (!form.nome || (!form.valor && !form.sem_valor)) return;
     const novo = {
       ...form,
       id: Date.now(),
@@ -64,6 +65,7 @@ export default function Financeiro({ onVerCliente }) {
       data_entrada: c.data_entrada || '', data_saida: c.data_saida || '',
       contrato: c.contrato || '', drive: c.drive || '', senha: c.senha || '',
       socios: c.socios || (c.aniversarios ? c.aniversarios.map(a => ({ nome: a.nome || '', aniversario: a.data || '' })) : c.aniversario ? [{ nome: '', aniversario: c.aniversario }] : []),
+      sem_valor: c.sem_valor || false,
     });
     setEditandoId(c.id);
     setShowForm(true);
@@ -79,7 +81,8 @@ export default function Financeiro({ onVerCliente }) {
     if (entrada.getMonth() === mesHoje && entrada.getFullYear() === anoHoje) return c.valor_onboarding;
     return c.valor || 0;
   };
-  const totalMensal = clientes.filter(c => c.status === 'ativo').reduce((s, c) => s + valorEfetivo(c), 0);
+  const totalMensal = clientes.filter(c => c.status === 'ativo' && !c.sem_valor).reduce((s, c) => s + valorEfetivo(c), 0);
+  const clientesParaTicket = clientes.filter(c => c.status === 'ativo' && !c.sem_valor);
 
   const atualizarDist = (i, campo, valor) => {
     const nova = [...fluxo.distribuicao];
@@ -131,8 +134,8 @@ export default function Financeiro({ onVerCliente }) {
             <div className="bg-white rounded-2xl p-5 border border-[#d2b99b]/30 shadow-sm">
               <div className="text-xs text-gray-500 font-medium mb-1">Ticket medio</div>
               <div className="text-2xl font-bold text-[#486c96]">
-                {clientes.filter(c => c.status === 'ativo').length > 0
-                  ? `R$ ${(totalMensal / clientes.filter(c => c.status === 'ativo').length).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                {clientesParaTicket.length > 0
+                  ? `R$ ${(totalMensal / clientesParaTicket.length).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
                   : 'R$ 0,00'}
               </div>
             </div>
@@ -205,7 +208,13 @@ export default function Financeiro({ onVerCliente }) {
 
                 <div><label className="label">Perfil Instagram</label><input className="input" value={form.perfil} onChange={e => setForm({...form, perfil: e.target.value})} placeholder="@perfil" /></div>
                 <div><label className="label">Area / Nicho</label><input className="input" value={form.area} onChange={e => setForm({...form, area: e.target.value})} placeholder="Ex: Terapeuta" /></div>
-                <div><label className="label">Valor mensal (R$)</label><input className="input" type="number" value={form.valor} onChange={e => setForm({...form, valor: e.target.value})} placeholder="0,00" /></div>
+                <div className="col-span-2">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" checked={!!form.sem_valor} onChange={e => setForm({...form, sem_valor: e.target.checked, valor: e.target.checked ? '0' : form.valor})} className="w-4 h-4 accent-[#486c96]" />
+                    <span className="text-sm text-gray-700">Cliente sem valor <span className="text-xs text-gray-400">(conta como cliente ativo, mas nao entra no ticket medio nem no total mensal)</span></span>
+                  </label>
+                </div>
+                <div><label className="label">Valor mensal (R$)</label><input className="input" type="number" value={form.valor} onChange={e => setForm({...form, valor: e.target.value})} placeholder="0,00" disabled={!!form.sem_valor} /></div>
                 <div><label className="label">Valor 1° mes / Onboarding (R$)</label><input className="input" type="number" value={form.valor_onboarding} onChange={e => setForm({...form, valor_onboarding: e.target.value})} placeholder="Deixe vazio se igual ao mensal" /></div>
                 <div><label className="label">Dia de pagamento</label><input className="input" type="number" min="1" max="31" value={form.dia_pagamento} onChange={e => setForm({...form, dia_pagamento: e.target.value})} placeholder="Ex: 10" /></div>
                 <div><label className="label">Servico contratado</label><input className="input" value={form.servico} onChange={e => setForm({...form, servico: e.target.value})} placeholder="Ex: Gestao Completa" /></div>
