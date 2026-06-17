@@ -46,6 +46,9 @@ const KEYS = {
   resultados: 'da_resultados',
   cronograma: 'da_cronograma',
   feedbacks: 'da_feedbacks',
+  onboarding: 'da_onboarding',
+  aprendizado: 'da_aprendizado',
+  referencias: 'da_referencias',
 };
 
 export const ALL_BACKUP_KEYS = Object.values(KEYS);
