@@ -141,17 +141,43 @@ export default function PautasQuentes() {
     });
   };
 
-  const marcarBoa = (clienteId, i) => {
+  const marcarBoa = (clienteId, i, nomeCliente) => {
     const dados = bancoIdeias[clienteId];
     if (!dados) return;
+    const ideia = dados.ideias[i];
+    const texto = typeof ideia === 'string' ? ideia : ideia.texto;
+    const eraboa = typeof ideia === 'object' && ideia.boa;
     const novasIdeias = dados.ideias.map((ideia, idx) => {
-      const texto = typeof ideia === 'string' ? ideia : ideia.texto;
-      const boa = typeof ideia === 'string' ? false : ideia.boa;
-      return idx === i ? { texto, boa: !boa } : { texto, boa };
+      const t = typeof ideia === 'string' ? ideia : ideia.texto;
+      const b = typeof ideia === 'string' ? false : ideia.boa;
+      return idx === i ? { texto: t, boa: !b } : { texto: t, boa: b };
     });
-    const novo = { ...bancoIdeias, [clienteId]: { ...dados, ideias: novasIdeias } };
-    setBancoIdeias(novo);
-    set('banco_ideias', novo);
+    const novoBanco = { ...bancoIdeias, [clienteId]: { ...dados, ideias: novasIdeias } };
+    setBancoIdeias(novoBanco);
+    set('banco_ideias', novoBanco);
+
+    // Sincroniza com Insights
+    const insights = getOrDefault('insights', []);
+    const insightId = `ideia_${clienteId}_${i}`;
+    if (!eraboa) {
+      // Marcando como boa: cria insight
+      const titulo = texto.length > 70 ? texto.slice(0, 70) + '...' : texto;
+      const novoInsight = {
+        id: insightId,
+        titulo,
+        texto,
+        categoria: 'Conteudo',
+        cliente_id: clienteId,
+        data: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }),
+        origem: 'banco_ideias',
+      };
+      const jaExiste = insights.find(ins => ins.id === insightId);
+      const novosInsights = jaExiste ? insights : [novoInsight, ...insights];
+      set('insights', novosInsights);
+    } else {
+      // Desmarcando: remove do insights
+      set('insights', insights.filter(ins => ins.id !== insightId));
+    }
   };
 
   const removerIdeia = (clienteId, i) => {
@@ -316,7 +342,7 @@ export default function PautasQuentes() {
                               <span className="text-[#d2b99b] font-bold text-xs w-5 flex-shrink-0 mt-0.5">{i + 1}</span>
                               <p className={`text-sm flex-1 leading-relaxed ${boa ? 'text-green-800 font-medium' : 'text-gray-700'}`}>{texto}</p>
                               <div className="flex items-center gap-1 flex-shrink-0">
-                                <button onClick={() => marcarBoa(c.id, i)}
+                                <button onClick={() => marcarBoa(c.id, i, c.nome)}
                                   title={boa ? 'Desmarcar' : 'Marcar como boa ideia'}
                                   className={`p-1.5 rounded-lg transition-colors ${boa ? 'text-green-500 bg-green-100' : 'text-gray-300 hover:text-green-500'}`}>
                                   <CheckIcon size={14} />
