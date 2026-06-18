@@ -49,6 +49,9 @@ const KEYS = {
   onboarding: 'da_onboarding',
   aprendizado: 'da_aprendizado',
   referencias: 'da_referencias',
+  semana_planner: 'da_semana_planner',
+  servicos_empresa: 'da_servicos_empresa',
+  ferramentas_empresa: 'da_ferramentas_empresa',
 };
 
 export const ALL_BACKUP_KEYS = Object.values(KEYS);

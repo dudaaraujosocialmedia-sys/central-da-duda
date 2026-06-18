@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { getOrDefault, set } from '../store';
-import { Plus, Trash2, Check, X, Edit2, Star, BookOpen, DollarSign } from 'lucide-react';
+import { Plus, Trash2, Check, X, Edit2, Star, BookOpen, DollarSign, Briefcase, Wrench } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -97,10 +97,35 @@ export default function Empresa() {
     setShowFormMarco(false);
   };
 
+  // --- SERVICOS ---
+  const [servicos, setServicos] = useState(() => getOrDefault('servicos_empresa', []));
+  const [formServ, setFormServ] = useState({ nome: '', descricao: '', preco: '', inclui: '', obs: '' });
+  const [showFormServ, setShowFormServ] = useState(false);
+  const [editServId, setEditServId] = useState(null);
+  const salvarServicos = (l) => { setServicos(l); set('servicos_empresa', l); };
+  const submitServ = () => {
+    if (!formServ.nome) return;
+    const item = { ...formServ, id: editServId || Date.now() };
+    if (editServId) {
+      salvarServicos(servicos.map(s => s.id === editServId ? item : s));
+      setEditServId(null);
+    } else {
+      salvarServicos([...servicos, item]);
+    }
+    setFormServ({ nome: '', descricao: '', preco: '', inclui: '', obs: '' });
+    setShowFormServ(false);
+  };
+
+  // --- FERRAMENTAS ---
+  const [ferramentas, setFerramentas] = useState(() => getOrDefault('ferramentas_empresa', []));
+  const [novaFerr, setNovaFerr] = useState('');
+  const salvarFerramentas = (l) => { setFerramentas(l); set('ferramentas_empresa', l); };
+
   const abas = [
-    { id: 'marca', label: 'Identidade da Marca', icon: Star },
-    { id: 'despesas', label: 'Despesas', icon: DollarSign },
-    { id: 'diario', label: 'Diario da Empresa', icon: BookOpen },
+    { id: 'marca',      label: 'Identidade da Marca', icon: Star },
+    { id: 'servicos',   label: 'Servicos',            icon: Briefcase },
+    { id: 'despesas',   label: 'Despesas',            icon: DollarSign },
+    { id: 'diario',     label: 'Diario da Empresa',   icon: BookOpen },
   ];
 
   return (
@@ -115,6 +140,123 @@ export default function Empresa() {
           </button>
         ))}
       </div>
+
+      {/* ===== SERVICOS ===== */}
+      {aba === 'servicos' && (
+        <div className="space-y-5">
+
+          {/* Pacotes */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="font-bold text-[#486c96]">Pacotes e servicos</h3>
+                <p className="text-xs text-gray-400 mt-0.5">O que voce oferece, com descricao e preco — use como referencia na hora de fechar propostas.</p>
+              </div>
+              <button className="btn-primary flex items-center gap-2 flex-shrink-0"
+                onClick={() => { setShowFormServ(true); setEditServId(null); setFormServ({ nome: '', descricao: '', preco: '', inclui: '', obs: '' }); }}>
+                <Plus size={16} /> Novo pacote
+              </button>
+            </div>
+
+            {showFormServ && (
+              <div className="bg-white rounded-2xl p-5 border border-[#d2b99b]/30 shadow-sm mb-4">
+                <h4 className="font-semibold text-[#486c96] mb-4">{editServId ? 'Editar pacote' : 'Novo pacote'}</h4>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="label">Nome do pacote</label>
+                      <input className="input" placeholder="Ex: Social Media Essencial, Gestao Completa..." autoFocus
+                        value={formServ.nome} onChange={e => setFormServ({ ...formServ, nome: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="label">Preco</label>
+                      <input className="input" placeholder="Ex: R$ 1.500/mes, A partir de R$ 800..."
+                        value={formServ.preco} onChange={e => setFormServ({ ...formServ, preco: e.target.value })} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="label">Descricao curta</label>
+                    <input className="input" placeholder="Ex: Gestao completa do Instagram com foco em crescimento organico"
+                      value={formServ.descricao} onChange={e => setFormServ({ ...formServ, descricao: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="label">O que inclui</label>
+                    <textarea className="input" rows={3}
+                      placeholder="Ex: 12 posts/mes, 20 stories/semana, 4 reels, relatorio mensal, reuniao quinzenal..."
+                      value={formServ.inclui} onChange={e => setFormServ({ ...formServ, inclui: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="label">Observacoes / condicoes (opcional)</label>
+                    <input className="input" placeholder="Ex: Contrato minimo 3 meses, artes por conta do cliente..."
+                      value={formServ.obs} onChange={e => setFormServ({ ...formServ, obs: e.target.value })} />
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <button className="btn-primary" onClick={submitServ}><Check size={14} className="inline mr-1" /> Salvar</button>
+                  <button className="btn-secondary" onClick={() => { setShowFormServ(false); setEditServId(null); }}><X size={14} className="inline mr-1" /> Cancelar</button>
+                </div>
+              </div>
+            )}
+
+            {servicos.length === 0 && !showFormServ ? (
+              <div className="bg-white rounded-2xl p-8 text-center border border-[#d2b99b]/30 shadow-sm text-gray-400 text-sm">
+                Nenhum pacote cadastrado. Adicione os servicos que voce oferece.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {servicos.map(s => (
+                  <div key={s.id} className="bg-white rounded-2xl p-5 border border-[#d2b99b]/30 shadow-sm">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div>
+                        <div className="font-bold text-[#486c96]">{s.nome}</div>
+                        {s.preco && <div className="text-sm font-semibold text-green-600 mt-0.5">{s.preco}</div>}
+                      </div>
+                      <div className="flex gap-1 flex-shrink-0">
+                        <button onClick={() => { setFormServ({ nome: s.nome, descricao: s.descricao, preco: s.preco, inclui: s.inclui, obs: s.obs }); setEditServId(s.id); setShowFormServ(true); }} className="text-[#486c96] hover:text-[#5f86ad]"><Edit2 size={13} /></button>
+                        <button onClick={() => salvarServicos(servicos.filter(x => x.id !== s.id))} className="text-gray-300 hover:text-red-400"><Trash2 size={13} /></button>
+                      </div>
+                    </div>
+                    {s.descricao && <p className="text-sm text-gray-600 mb-2">{s.descricao}</p>}
+                    {s.inclui && (
+                      <div className="bg-[#f9f1e7] rounded-xl p-3 mb-2">
+                        <div className="text-[10px] font-bold text-[#486c96] uppercase tracking-wide mb-1">Inclui</div>
+                        <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-line">{s.inclui}</p>
+                      </div>
+                    )}
+                    {s.obs && <p className="text-[10px] text-gray-400 italic">{s.obs}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Ferramentas */}
+          <div className="bg-white rounded-2xl p-5 border border-[#d2b99b]/30 shadow-sm">
+            <div className="flex items-center gap-2 mb-1">
+              <Wrench size={15} className="text-[#486c96]" />
+              <h3 className="font-bold text-[#486c96]">Ferramentas que uso</h3>
+            </div>
+            <p className="text-xs text-gray-400 mb-4">Canva, Later, Meta Business, Notion, ChatGPT...</p>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {ferramentas.map((f, i) => (
+                <div key={i} className="flex items-center gap-1.5 bg-[#f9f1e7] text-[#486c96] text-xs font-semibold px-3 py-1.5 rounded-xl border border-[#d2b99b]/30">
+                  {f}
+                  <button onClick={() => salvarFerramentas(ferramentas.filter((_, j) => j !== i))} className="text-[#d2b99b] hover:text-red-400 ml-0.5"><X size={11} /></button>
+                </div>
+              ))}
+              {ferramentas.length === 0 && <p className="text-xs text-gray-400">Nenhuma ferramenta ainda</p>}
+            </div>
+            <div className="flex gap-2">
+              <input className="input flex-1 text-sm" placeholder="Ex: Canva, Later, Meta Business Suite..."
+                value={novaFerr} onChange={e => setNovaFerr(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && novaFerr.trim()) { salvarFerramentas([...ferramentas, novaFerr.trim()]); setNovaFerr(''); }}} />
+              <button onClick={() => { if (novaFerr.trim()) { salvarFerramentas([...ferramentas, novaFerr.trim()]); setNovaFerr(''); }}}
+                className="btn-secondary px-3"><Plus size={14} /></button>
+            </div>
+          </div>
+
+        </div>
+      )}
 
       {/* ===== MARCA ===== */}
       {aba === 'marca' && (

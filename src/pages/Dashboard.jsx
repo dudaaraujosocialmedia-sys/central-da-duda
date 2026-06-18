@@ -1,5 +1,6 @@
-import { getOrDefault } from '../store';
-import { Target, Calendar, AlertCircle } from 'lucide-react';
+import { useState } from 'react';
+import { getOrDefault, set } from '../store';
+import { Target, Calendar, AlertCircle, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -7,7 +8,13 @@ export default function Dashboard({ onNavigate }) {
   const clientes = getOrDefault('clientes', []);
   const metas = getOrDefault('metas', []);
   const eventos = getOrDefault('eventos', []);
-  const checklistDiario = getOrDefault('checklist_diario', []);
+  const [checklistDiario, setChecklistDiario] = useState(() => getOrDefault('checklist_diario', []));
+
+  const toggleChecklist = (id) => {
+    const nova = checklistDiario.map(t => t.id === id ? { ...t, concluida: !t.concluida } : t);
+    setChecklistDiario(nova);
+    set('checklist_diario', nova);
+  };
 
   const hoje = new Date();
   const diaHoje = hoje.getDate();
@@ -114,6 +121,32 @@ export default function Dashboard({ onNavigate }) {
           </button>
         ))}
       </div>
+
+      {/* Checklist do dia */}
+      {checklistDiario.length > 0 && (
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#d2b99b]/30 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Check size={18} className="text-[#486c96]" />
+              <h3 className="font-semibold text-[#486c96]">Checklist de hoje</h3>
+            </div>
+            <span className="text-xs text-gray-400 font-semibold">
+              {checklistDiario.filter(t => t.concluida).length}/{checklistDiario.length} feitas
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {checklistDiario.map(t => (
+              <button key={t.id} onClick={() => toggleChecklist(t.id)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors border ${t.concluida ? 'bg-green-50 border-green-100' : 'bg-[#f9f1e7]/40 border-[#d2b99b]/30 hover:border-[#486c96]/40'}`}>
+                <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors ${t.concluida ? 'bg-[#486c96] border-[#486c96]' : 'border-[#d2b99b]'}`}>
+                  {t.concluida && <Check size={11} className="text-white" />}
+                </div>
+                <span className={`text-sm ${t.concluida ? 'line-through text-gray-400' : 'text-gray-700'}`}>{t.titulo || t.texto}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#d2b99b]/30">

@@ -21,6 +21,7 @@ import Resultados from './pages/Resultados';
 import Cronograma from './pages/Cronograma';
 import Feedbacks from './pages/Feedbacks';
 import Relatorio from './pages/Relatorio';
+import Semana from './pages/Semana';
 import Onboarding from './pages/Onboarding';
 import Aprendizado from './pages/Aprendizado';
 import Referencias from './pages/Referencias';
@@ -43,6 +44,7 @@ const PAGES = {
   cronograma: Cronograma,
   feedbacks: Feedbacks,
   relatorio: Relatorio,
+  semana: Semana,
   onboarding: Onboarding,
   aprendizado: Aprendizado,
   referencias: Referencias,
@@ -55,7 +57,7 @@ const PAGE_LABELS = {
   mensagens: 'Mensagens Prontas', checklist: 'Checklist', cursos: 'Cursos & Estudos',
   insights: 'Insights', senhas: 'Cofre de Senhas', processos: 'Processos',
   empresa: 'Minha Empresa', resultados: 'Resultados', cronograma: 'Cronograma', feedbacks: 'Feedbacks',
-  relatorio: 'Relatorio', onboarding: 'Onboarding', aprendizado: 'Aprendizado', referencias: 'Referencias', ajustes: 'Ajustes',
+  semana: 'Semana', relatorio: 'Relatorio', onboarding: 'Onboarding', aprendizado: 'Aprendizado', referencias: 'Referencias', ajustes: 'Ajustes',
 };
 
 export default function App() {

@@ -4,7 +4,7 @@ import {
   Calendar, MessageSquare, CheckSquare, GraduationCap,
   Lightbulb, Lock, BookOpen, Settings, X, Building2, BarChart2,
   CalendarDays, Heart, FileText, UserCheck, BookMarked, Bookmark,
-  ChevronDown
+  ChevronDown, LayoutGrid
 } from 'lucide-react';
 
 const GRUPOS = [
@@ -41,6 +41,7 @@ const GRUPOS = [
     id: 'operacional',
     label: 'Operacional',
     items: [
+      { id: 'semana',      label: 'Semana',       icon: LayoutGrid },
       { id: 'calendario',  label: 'Calendario',  icon: Calendar },
       { id: 'checklist',   label: 'Checklist',   icon: CheckSquare },
       { id: 'processos',   label: 'Processos',   icon: BookOpen },
